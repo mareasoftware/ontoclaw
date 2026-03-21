@@ -297,8 +297,8 @@ def compile(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, forc
         try:
             extracted = tool_use_loop(skill_dir, skill_hash, skill_id)
             extracted = enrich_extracted_skill(extracted, skill_dir, input_path)
-            # Keep short ID for parent skill (sub-skills will extend to qualified parent)
-            # Note: extracted.id remains the short skill ID (e.g., "brainstorming")
+            # Keep short/local ID for parent skill (sub-skills extend to this short parent ID)
+            # Note: extracted.id remains the short skill ID (e.g., "brainstorming"), used as extends_parent
             compiled_skills.append(extracted)
             skill_output_paths.append(output_skill_path)
 
