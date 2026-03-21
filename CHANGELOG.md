@@ -66,7 +66,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Added bootstrap and publication flow for the official registry repository
-- Added a first remote demo package `marea.greeting/hello` to validate end-to-end registry installs
+- Added a first remote demo package `mareasw/greeting/hello` to validate end-to-end registry installs
 
 ### Changed
 
@@ -79,7 +79,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Verified
 
-- Verified remote install and activation of `marea.greeting/hello` from the public registry repository
+- Verified remote install and activation of `mareasw/greeting/hello` from the public registry repository
 - Verified registry state generation under `~/.ontoskills/` for:
   - `registry.lock.json`
   - `index.installed.ttl`

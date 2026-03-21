@@ -30,7 +30,7 @@ Marketplace installs use qualified ids:
 
 Examples:
 
-- `marea/greeting/hello`
+- `mareasw/greeting/hello`
 - `marea/office/xlsx`
 - `marea/office/docx`
 
@@ -42,8 +42,8 @@ Examples:
 4. Enable it so OntoMCP exposes it.
 
 ```bash
-ontoskills install marea/greeting/hello
-ontoskills enable marea/greeting/hello
+ontoskills install mareasw/greeting/hello
+ontoskills enable mareasw/greeting/hello
 ```
 
 ## Official vs Third-Party
