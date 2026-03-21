@@ -311,21 +311,23 @@ def compile(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, forc
     # skill_parent_map already built above for Rule A
 
     # Process auxiliary files (extraction only - serialization deferred until after dry_run check)
-    sub_skills_to_serialize = []  # List of (extracted, output_ttl_path, parent_skill_id)
+    # Tuple: (extracted, output_ttl_path, qualified_id, extends_parent, extends_parent_qualified)
+    sub_skills_to_serialize = []
     for md_file in auxiliary_md_files:
         skill_dir = md_file.parent
         rel_path = md_file.relative_to(input_path)
         output_ttl_path = output_path / rel_path.with_suffix(".ttl")
 
         # Get parent context
-        parent_skill_id, package_id = skill_parent_map.get(skill_dir, ("local/unknown", "local"))
+        parent_qualified_id, package_id = skill_parent_map.get(skill_dir, ("local/unknown", "local"))
 
-        # Generate sub-skill ID
+        # Generate IDs: short ID from filename, qualified ID from full path
         parent_local_id = generate_skill_id(skill_dir.name)
-        sub_skill_id = generate_sub_skill_id(package_id, parent_local_id, md_file.name)
+        sub_skill_short_id = md_file.stem  # e.g., "planning" from "planning.md"
+        sub_skill_qualified_id = f"{package_id}/{parent_local_id}/{sub_skill_short_id}"
         sub_skill_hash = compute_sub_skill_hash(md_file)
 
-        logger.info(f"Processing auxiliary markdown: {md_file.name} -> {sub_skill_id}")
+        logger.info(f"Processing auxiliary markdown: {md_file.name} -> {sub_skill_short_id}")
 
         # Check cache
         if not force and output_ttl_path.exists():
@@ -341,7 +343,7 @@ def compile(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, forc
                         break
 
                 if existing_hash == sub_skill_hash:
-                    logger.info(f"Sub-skill {sub_skill_id} unchanged (hash match), skipping")
+                    logger.info(f"Sub-skill {sub_skill_short_id} unchanged (hash match), skipping")
                     continue
             except Exception as e:
                 logger.debug(f"Could not read existing sub-skill: {e}")
@@ -352,22 +354,24 @@ def compile(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, forc
         # Build parent context
         parent_context = {
             "filename": md_file.name,
-            "parent_skill_id": parent_skill_id,
+            "parent_skill_id": parent_local_id,
             "sibling_names": sibling_names
         }
 
-        # LLM extraction with context
+        # LLM extraction with context - use SHORT ID for extracted.id
         try:
-            extracted = tool_use_loop(skill_dir, sub_skill_hash, sub_skill_id, parent_context=parent_context)
+            extracted = tool_use_loop(skill_dir, sub_skill_hash, sub_skill_short_id, parent_context=parent_context)
             extracted = enrich_extracted_skill(extracted, skill_dir, input_path)
 
             # Defer serialization until after dry_run check
-            # Use short parent ID for extends relationship (matches parent's URI)
-            sub_skills_to_serialize.append((extracted, output_ttl_path, parent_local_id))
-            logger.info(f"Successfully extracted sub-skill: {sub_skill_id}")
+            sub_skills_to_serialize.append((
+                extracted, output_ttl_path, sub_skill_qualified_id,
+                parent_local_id, parent_qualified_id
+            ))
+            logger.info(f"Successfully extracted sub-skill: {sub_skill_short_id}")
 
         except ExtractionError as e:
-            console.print(f"[red]Extraction failed for sub-skill {sub_skill_id}: {e}[/red]")
+            console.print(f"[red]Extraction failed for sub-skill {sub_skill_short_id}: {e}[/red]")
             continue
 
     # Process Rule C: Asset Files (collect for later - copy deferred until after dry_run check)
@@ -408,19 +412,27 @@ def compile(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, forc
             console.print("[yellow]Cancelled[/yellow]")
             return
 
-    # Serialize each skill module
+    # Serialize each skill module (with qualified ID for URI)
     for skill, output_skill_path in zip(compiled_skills, skill_output_paths):
-        serialize_skill_to_module(skill, output_skill_path, output_path)
+        # Get qualified ID for this skill
+        package_id = resolve_package_id(output_skill_path.parent)
+        qualified_id = f"{package_id}/{skill.id}"
+        serialize_skill_to_module(
+            skill, output_skill_path, output_path,
+            qualified_id=qualified_id
+        )
 
     # Serialize sub-skill modules (after dry_run check)
     sub_skills_serialized = 0
     for item in sub_skills_to_serialize:
-        extracted, output_ttl_path, parent_skill_id = item
+        extracted, output_ttl_path, qualified_id, extends_parent, extends_parent_qualified = item
         serialize_skill_to_module(
             extracted,
             output_ttl_path,
             output_path,
-            extends_parent=parent_skill_id
+            qualified_id=qualified_id,
+            extends_parent=extends_parent,
+            extends_parent_qualified=extends_parent_qualified,
         )
         sub_skills_serialized += 1
 
