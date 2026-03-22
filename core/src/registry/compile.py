@@ -18,17 +18,18 @@ BROKEN_ABSOLUTE_PATH_RE = re.compile(r"~/\.claude//(?=[A-Za-z])")
 
 def compile_source_tree(source_root: Path, compiled_root: Path) -> None:
     """Compile a source tree using the CLI compiler."""
-    cli_path = Path(__file__).resolve().parent.parent / "cli.py"
+    # Use module entry point after CLI refactoring (cli/ package, not cli.py)
+    src_root = Path(__file__).resolve().parent.parent
     command = [
         sys.executable,
-        str(cli_path),
+        "-m", "compiler.cli",
         "compile",
         "-i", str(source_root),
         "-o", str(compiled_root),
         "-y", "-f",
     ]
     env = dict(**__import__("os").environ)
-    env["PYTHONPATH"] = str(Path(__file__).resolve().parent.parent)
+    env["PYTHONPATH"] = str(src_root.parent)  # Point to core/ so 'compiler' is importable
     result = subprocess.run(command, capture_output=True, text=True, env=env)
     if result.returncode != 0:
         raise RuntimeError(

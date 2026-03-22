@@ -17,7 +17,7 @@ try:
     from importlib.metadata import version
     __version__ = version("ontocore")
 except Exception:
-    __version__ = "0.9.0"  # Fallback during development
+    __version__ = "0.9.1"  # Fallback during development
 
 # Configure logging
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

@@ -78,7 +78,7 @@ def enrich_extracted_skill(extracted, skill_dir: Path, input_path: Path):
 @click.option('-o', '--output', 'output_dir', default=OUTPUT_DIR,
               type=click.Path(), help='Output directory for ontoskills')
 @click.option('--dry-run', is_flag=True, help='Preview without saving')
-@click.option('--skip-security', is_flag=True, help='Skip security checks')
+@click.option('--skip-security', is_flag=True, help='Skip LLM security review (regex-based checks still run)')
 @click.option('-f', '--force', is_flag=True,
               help='Force recompilation of all skills (bypass cache)')
 @click.option('-y', '--yes', is_flag=True, help='Skip confirmation prompt')

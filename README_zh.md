@@ -81,14 +81,14 @@ flowchart LR
 
 ```bash
 # 安装
-pip install ontoskills
+pip install ontocore
 
 # 编译技能到本体
-ontoskills init-core
-ontoskills compile
+ontocore init-core
+ontocore compile
 
 # 查询知识图谱
-ontoskills query "SELECT ?skill WHERE { ?skill oc:resolvesIntent 'create_pdf' }"
+ontocore query "SELECT ?skill WHERE { ?skill oc:resolvesIntent 'create_pdf' }"
 ```
 
 或使用 `npx ontoskills` 无需安装。
