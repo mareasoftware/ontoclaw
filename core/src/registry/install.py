@@ -6,7 +6,7 @@ import json
 import shutil
 import subprocess
 import sys
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import urljoin, urlparse
@@ -88,7 +88,7 @@ def _install_ontology_package(
         trust_tier=trust_tier,
         source=manifest.source,
         source_kind=source_kind,
-        installed_at=datetime.now(UTC).isoformat(),
+        installed_at=datetime.now(timezone.utc).isoformat(),
         install_root=str(install_root),
         manifest_path=str(copied_manifest),
         skills=[
@@ -156,7 +156,7 @@ def install_source_package_from_directory(
         trust_tier=trust_tier,
         source=manifest.source,
         source_kind="source",
-        installed_at=datetime.now(UTC).isoformat(),
+        installed_at=datetime.now(timezone.utc).isoformat(),
         install_root=str(compiled_root),
         manifest_path=str(copied_manifest),
         skills=skills,
@@ -200,11 +200,11 @@ def import_source_repository(
 
         package_state = InstalledPackageState(
             package_id=resolved_package_id,
-            version=datetime.now(UTC).strftime("import-%Y%m%d%H%M%S"),
+            version=datetime.now(timezone.utc).strftime("import-%Y%m%d%H%M%S"),
             trust_tier=trust_tier,
             source=source_ref,
             source_kind="source",
-            installed_at=datetime.now(UTC).isoformat(),
+            installed_at=datetime.now(timezone.utc).isoformat(),
             install_root=str(compiled_root),
             manifest_path="",
             skills=[

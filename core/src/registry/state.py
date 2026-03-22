@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -127,7 +127,7 @@ def sync_local_package(lock: RegistryLock, root: Path) -> RegistryLock:
             version="workspace",
             trust_tier="local",
             source=None,
-            installed_at=datetime.now(UTC).isoformat(),
+            installed_at=datetime.now(timezone.utc).isoformat(),
             install_root=str(root),
             manifest_path="",
             skills=local_skills,

@@ -17,7 +17,7 @@ console = Console()
 @click.command('query')
 @click.argument('query_string')
 @click.option('-o', '--ontology', 'ontology_file', default=str(enabled_index_path(Path(resolve_ontology_root(OUTPUT_DIR)))),
-              type=click.Path(exists=False), help='Ontology file or directory')
+              type=click.Path(exists=False), help='Ontology TTL file (e.g. index.enabled.ttl)')
 @click.option('-f', '--format', 'output_format',
               type=click.Choice(['table', 'json', 'turtle']), default='table',
               help='Output format')
@@ -55,7 +55,7 @@ def query_cmd(ctx, query_string, ontology_file, output_format, verbose, quiet):
 
 @click.command('list-skills')
 @click.option('-o', '--ontology', 'ontology_file', default=str(enabled_index_path(Path(resolve_ontology_root(OUTPUT_DIR)))),
-              type=click.Path(exists=False), help='Ontology file or directory')
+              type=click.Path(exists=False), help='Ontology TTL file (e.g. index.enabled.ttl)')
 @click.option('-v', '--verbose', is_flag=True, help='Enable debug logging')
 @click.option('-q', '--quiet', is_flag=True, help='Suppress progress output')
 @click.pass_context
