@@ -17,9 +17,10 @@ BROKEN_ABSOLUTE_PATH_RE = re.compile(r"~/\.claude//(?=[A-Za-z])")
 
 
 def compile_source_tree(source_root: Path, compiled_root: Path) -> None:
-    """Compile a source tree using the CLI compiler."""
-    # Use module entry point after CLI refactoring (cli/ package, not cli.py)
-    src_root = Path(__file__).resolve().parent.parent
+    """Compile a source tree using the CLI compiler.
+
+    Requires the ontocore package to be installed (pip install -e . or pip install ontocore).
+    """
     command = [
         sys.executable,
         "-m", "compiler.cli",
@@ -28,9 +29,7 @@ def compile_source_tree(source_root: Path, compiled_root: Path) -> None:
         "-o", str(compiled_root),
         "-y", "-f",
     ]
-    env = dict(**__import__("os").environ)
-    env["PYTHONPATH"] = str(src_root.parent)  # Point to core/ so 'compiler' is importable
-    result = subprocess.run(command, capture_output=True, text=True, env=env)
+    result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(
             f"Source package compilation failed with code {result.returncode}: {result.stderr or result.stdout}"

@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `cli/registry.py` — Registry and package management commands
   - `cli/audit.py` — Security audit and diff commands
   - `cli/export.py` — Embeddings export command
+- **Registry refactoring** — Split monolithic `registry.py` into modular `registry/` package:
+  - `registry/__init__.py` — Public API exports
+  - `registry/compile.py` — Source tree compilation helpers
+  - `registry/index.py` — Registry index rebuilding
+  - `registry/install.py` — Package installation from directories/registries
+  - `registry/models.py` — Pydantic models for manifests and state
+  - `registry/paths.py` — Registry path utilities
+  - `registry/state.py` — Registry state management
 - **README update** — Improved positioning and tagline emphasizing deterministic skills vs probabilistic alternatives
 - **Command name** — CLI now uses `ontocore` command (was `ontoskills`)
 
