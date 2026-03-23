@@ -7,7 +7,6 @@ to modular OWL 2 RDF/Turtle ontology.
 
 import logging
 import sys
-from pathlib import Path
 
 import click
 from rich.console import Console

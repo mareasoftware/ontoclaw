@@ -4,7 +4,7 @@ from click.testing import CliRunner
 
 def test_cli_version():
     """Test CLI version command - reads from pyproject.toml."""
-    from cli import cli, __version__
+    from compiler.cli import cli, __version__
     runner = CliRunner()
     result = runner.invoke(cli, ['--version'])
     assert result.exit_code == 0
@@ -14,7 +14,7 @@ def test_cli_version():
 
 def test_cli_help():
     """Test CLI help command."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, ['--help'])
     assert result.exit_code == 0
@@ -26,7 +26,7 @@ def test_cli_help():
 
 def test_init_core_command(tmp_path):
     """Test init-core command creates core ontology."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     output_dir = tmp_path / "ontoskills"
     result = runner.invoke(cli, ['init-core', '-o', str(output_dir)])
@@ -38,7 +38,7 @@ def test_init_core_command(tmp_path):
 
 def test_init_core_idempotent(tmp_path):
     """Test that init-core doesn't overwrite existing core without --force."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     output_dir = tmp_path / "ontoskills"
 
@@ -62,7 +62,7 @@ def test_init_core_idempotent(tmp_path):
 
 def test_compile_no_skills(tmp_path):
     """Test compile with no skills directory."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, [
         'compile',
@@ -76,7 +76,7 @@ def test_compile_no_skills(tmp_path):
 
 def test_query_missing_ontology(tmp_path):
     """Test query with missing ontology file."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, [
         'query',
@@ -90,7 +90,7 @@ def test_query_missing_ontology(tmp_path):
 
 def test_list_skills_missing_ontology(tmp_path):
     """Test list-skills with missing ontology."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, [
         'list-skills',
@@ -102,7 +102,7 @@ def test_list_skills_missing_ontology(tmp_path):
 
 def test_security_audit_no_skills(tmp_path):
     """Test security-audit with no skills directory."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, [
         'security-audit',
@@ -114,7 +114,7 @@ def test_security_audit_no_skills(tmp_path):
 
 def test_diff_command_in_help():
     """Test that the diff command is listed in the CLI help output."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, ['--help'])
     assert result.exit_code == 0
@@ -123,7 +123,7 @@ def test_diff_command_in_help():
 
 def test_diff_no_snapshot(tmp_path):
     """Test that diff fails gracefully when no snapshot exists."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     # Point to a non-existent snapshot dir so get_latest_snapshot returns None
     with runner.isolated_filesystem():
@@ -137,7 +137,7 @@ def test_diff_no_snapshot(tmp_path):
 
 def test_diff_clean(tmp_path):
     """Test that diffing identical files reports no drift and exits 0."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
 
     ttl_content = """
@@ -160,7 +160,7 @@ oc:TestSkill a oc:Skill ;
 
 def test_diff_breaking_exits_9(tmp_path):
     """Test that breaking changes cause exit code 9."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
 
     old_ttl = tmp_path / 'old.ttl'
@@ -188,7 +188,7 @@ oc:TestSkill a oc:Skill ;
 
 def test_diff_breaking_only_flag(tmp_path):
     """Test that --breaking-only suppresses additive changes in output."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
 
     old_ttl = tmp_path / 'old.ttl'
@@ -223,7 +223,7 @@ oc:SkillB a oc:Skill ;
 def test_diff_json_output(tmp_path):
     """Test that --format json writes a valid JSON drift report."""
     import json as json_mod
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
 
     ttl_file = tmp_path / 'skills.ttl'
@@ -251,7 +251,7 @@ oc:TestSkill a oc:Skill ;
 
 def test_diff_suggest_shows_migration_guidance(tmp_path):
     """--suggest should print migration guidance when breaking changes exist."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
 
     old_ttl = tmp_path / 'old.ttl'
@@ -278,7 +278,7 @@ oc:SkillA a oc:Skill ; oc:resolvesIntent "new_intent" .
 
 def test_force_flag_accepted():
     """Test that --force flag appears in compile --help output."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
     result = runner.invoke(cli, ['compile', '--help'])
 
@@ -454,7 +454,7 @@ class TestExportEmbeddingsCLI:
     def test_export_embeddings_command(self, tmp_path):
         """export-embeddings command creates output files."""
         from rdflib import Graph, Namespace, Literal, RDF
-        from cli import cli
+        from compiler.cli import cli
 
         OC = Namespace("https://ontoskills.sh/ontology#")
         DCTERMS = Namespace("http://purl.org/dc/terms/")
@@ -487,7 +487,7 @@ class TestExportEmbeddingsCLI:
 
 def test_compile_rejects_orphan_sub_skills(tmp_path):
     """Compile should fail if .md files exist without SKILL.md."""
-    from cli import cli
+    from compiler.cli import cli
     runner = CliRunner()
 
     # Create skill directory with auxiliary .md but no SKILL.md
@@ -511,7 +511,7 @@ def test_compile_rejects_orphan_sub_skills(tmp_path):
 def test_dry_run_does_not_write_sub_skill_modules(tmp_path):
     """Compile --dry-run should not write sub-skill .ttl files or copy assets."""
     from unittest.mock import patch, MagicMock
-    from cli import cli
+    from compiler.cli import cli
 
     # Create skill directory with SKILL.md, auxiliary .md, and an asset
     skill_dir = tmp_path / "skills" / "parent-skill"
