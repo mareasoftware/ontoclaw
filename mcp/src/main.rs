@@ -288,7 +288,7 @@ fn discover_ontology_root() -> Option<PathBuf> {
 fn default_ontology_root() -> PathBuf {
     env::var_os("HOME")
         .map(PathBuf::from)
-        .map(|home| home.join(".ontoskills").join("ontoskills"))
+        .map(|home| home.join(".ontoskills").join("ontologies"))
         .unwrap_or_else(|| PathBuf::from("ontoskills"))
 }
 

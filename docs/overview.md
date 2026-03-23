@@ -122,7 +122,7 @@ Every skill is extracted with:
 - **[CLI](/cli/)** — Learn the managed command surface
 - **[Marketplace](/marketplace/)** — Browse installable store skills
 - **[Compiler](/compiler/)** — Install OntoCore for custom skills
-- **[Store](/registry/)** — Learn how official and third-party stores work
+- **[Store](/store/)** — Learn how official and third-party stores work
 - **[Architecture](/architecture/)** — Deep dive into the system design
 - **[Knowledge Extraction](/knowledge-extraction/)** — Understanding knowledge nodes
 - **[Troubleshooting](/troubleshooting/)** — Fix common install and runtime issues

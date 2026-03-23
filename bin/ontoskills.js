@@ -8,7 +8,7 @@ const { spawnSync } = require("child_process");
 
 const HOME_ROOT = process.env.ONTOSKILLS_HOME || process.env.ONTOSKILL_HOME || path.join(os.homedir(), ".ontoskills");
 const BIN_DIR = path.join(HOME_ROOT, "bin");
-const ONTOLOGY_DIR = path.join(HOME_ROOT, "ontoskills");
+const ONTOLOGY_DIR = path.join(HOME_ROOT, "ontologies");
 const ONTOLOGY_VENDOR_DIR = path.join(ONTOLOGY_DIR, "vendor");
 const SKILLS_DIR = path.join(HOME_ROOT, "skills");
 const SKILLS_VENDOR_DIR = path.join(SKILLS_DIR, "vendor");

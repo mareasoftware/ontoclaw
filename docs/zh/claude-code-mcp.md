@@ -26,7 +26,7 @@ npx ontoskills install mcp
   "mcpServers": {
     "ontoskills": {
       "command": "/Users/你的用户名/.ontoskills/bin/ontomcp",
-      "args": ["--ontology-root", "/Users/你的用户名/.ontoskills/ontoskills"]
+      "args": ["--ontology-root", "/Users/你的用户名/.ontoskills/ontologies"]
     }
   }
 }
@@ -40,7 +40,7 @@ npx ontoskills install mcp
     "ontoskills": {
       "command": "/Users/你的用户名/.ontoskills/bin/ontomcp",
       "env": {
-        "ONTOMCP_ONTOLOGY_ROOT": "/Users/你的用户名/.ontoskills/ontoskills"
+        "ONTOMCP_ONTOLOGY_ROOT": "/Users/你的用户名/.ontoskills/ontologies"
       }
     }
   }

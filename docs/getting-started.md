@@ -1,106 +1,224 @@
 ---
 title: Getting Started
-description: Install OntoSkills, OntoMCP, and OntoCore
+description: Install OntoSkills and query your first skill
 ---
 
-OntoSkills ships as a product suite with three pieces:
+In this tutorial, you'll install OntoSkills and run your first SPARQL query against a compiled skill ontology.
 
-- `ontoskills` - the user-facing CLI
-- `ontomcp` - the local MCP runtime
-- `ontocore` - the optional compiler for source skills
+**What you'll have at the end:**
+- A working OntoSkills installation
+- A skill installed from OntoStore
+- A successful SPARQL query result
 
-OntoStore is built in by default. Third-party stores can be added explicitly.
+Time: ~5 minutes
+
+---
 
 ## Prerequisites
 
-- **Node.js** 18+ for the `ontoskills` CLI
-- **Git** for source imports
-- Optional: **Python** 3.10+ if you install `ontocore`
+Before you start, make sure you have:
 
-## Installation
+- **Node.js** 18+ ([install](https://nodejs.org/))
+- **Git** ([install](https://git-scm.com/))
+- **Anthropic API key** (get one at [console.anthropic.com](https://console.anthropic.com/))
+
+---
+
+## Step 1: Install the CLI
+
+Open your terminal and run:
 
 ```bash
 npx ontoskills install mcp
-npx ontoskills install core
 ```
 
-This creates a managed user home under `~/.ontoskills/` with:
+This creates a managed home at `~/.ontoskills/` with:
+- `bin/ontomcp` — the MCP runtime
+- `ontoskills/` — compiled ontology packages
+- `state/` — lockfiles and metadata
 
-- `bin/ontomcp`
-- `core/` for the compiler runtime, if installed
-- `ontoskills/` for compiled ontology packages
-- `state/` for lockfiles and store metadata
+**Expected output:**
+```
+✓ Installed ontomcp to ~/.ontoskills/bin/ontomcp
+✓ Created ~/.ontoskills/ontologies/
+✓ Created ~/.ontoskills/state/
+```
 
-## Common Commands
+---
+
+## Step 2: Install a Skill from OntoStore
+
+OntoStore is built in. Let's install a greeting skill:
 
 ```bash
+ontoskills search hello
+```
+
+**Expected output:**
+```
+Found 1 skill:
+  mareasw/greeting/hello - Simple greeting skill
+```
+
+Install and enable it:
+
+```bash
+ontoskills install mareasw/greeting/hello
+ontoskills enable mareasw/greeting/hello
+```
+
+**Expected output:**
+```
+✓ Installed mareasw/greeting/hello
+✓ Enabled mareasw/greeting/hello
+```
+
+---
+
+## Step 3: Query the Skill
+
+Now let's query the installed skill using SPARQL:
+
+```bash
+ontoskills query "SELECT ?skill ?intent WHERE { ?skill a oc:Skill . ?skill oc:resolvesIntent ?intent }"
+```
+
+**Expected output:**
+```text
+?skill                    ?intent
+─────────────────────────────────────
+skill:hello               "say_hello"
+```
+
+You just queried a compiled ontology. The result is deterministic — same query, same result, every time.
+
+---
+
+## Step 4: (Optional) Install the Compiler
+
+If you want to write custom skills from source, install the compiler:
+
+```bash
+ontoskills install core
+```
+
+Requirements:
+- **Python** 3.10+
+- `ANTHROPIC_API_KEY` environment variable set
+
+```bash
+export ANTHROPIC_API_KEY="your-key-here"
 ontoskills init-core
-ontoskills compile
-ontoskills compile my-skill
-ontoskills query "SELECT ?s WHERE { ?s a oc:Skill }"
-ontoskills list-skills
-ontoskills security-audit
 ```
 
-If you only want the runtime and the published skills, you do not need the compiler commands.
+This creates `ontoskills-core.ttl` — the base ontology with classes and properties.
 
-## Store Workflow
+---
 
-### Built-In OntoStore
+## Step 5: (Optional) Write Your First Skill
 
-OntoStore is already available to `ontoskills`. You can discover and install published skills without any extra setup.
+Create a simple skill:
 
 ```bash
-npx ontoskills search hello
-npx ontoskills install mareasw/greeting/hello
-npx ontoskills enable mareasw/greeting/hello
+mkdir -p skills/my-first-skill
 ```
 
-### Third-Party Stores
+Create `skills/my-first-skill/SKILL.md`:
+
+```markdown
+# My First Skill
+
+A simple demonstration skill.
+
+## What It Does
+
+This skill greets the user by name.
+
+## When To Use
+
+Use when the user wants a friendly greeting.
+
+## How To Use
+
+1. Ask for the user's name
+2. Say "Hello, {name}!"
+```
+
+Compile it:
 
 ```bash
-ontoskills store add-source acme https://example.com/index.json
-ontoskills store list
+ontoskills compile my-first-skill
 ```
 
-### Import Source Skills
+**Expected output:**
+```
+✓ Compiled my-first-skill
+  Nature: A simple demonstration skill
+  Intents: greet_user
+```
 
-Raw repositories containing `SKILL.md` files can be imported and compiled locally:
+Query your skill:
 
 ```bash
-ontoskills import-source https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+ontoskills query "SELECT ?intent WHERE { skill:my_first_skill oc:resolvesIntent ?intent }"
 ```
 
-Imported source skills are stored under `~/.ontoskills/skills/vendor/` and compiled outputs land in `~/.ontoskills/ontoskills/vendor/`.
+---
 
-## MCP Server
+## What You Learned
 
-OntoMCP exposes compiled ontologies via the Model Context Protocol.
+- How to install OntoSkills CLI and MCP runtime
+- How to install skills from OntoStore
+- How to query skills with SPARQL
+- (Optional) How to write and compile your own skill
+
+---
+
+## Next Steps
+
+Now that you're set up:
+
+| Goal | Read |
+|------|------|
+| Learn all CLI commands | [CLI Reference](/cli/) |
+| Browse available skills | [Marketplace](/marketplace/) |
+| Write custom skills | [Skill Authoring](/authoring/) |
+| Understand how it works | [Architecture](/architecture/) |
+| Connect to your AI client | [MCP Setup](/mcp/) |
+| Fix issues | [Troubleshooting](/troubleshooting/) |
+
+---
+
+## Common Issues
+
+### "Command not found: ontoskills"
+
+Make sure you ran `npx ontoskills install mcp` and the `~/.ontoskills/bin` directory is in your PATH, or use `npx ontoskills` as the command.
+
+### "ANTHROPIC_API_KEY not set"
 
 ```bash
-npx ontoskills install mcp
+export ANTHROPIC_API_KEY="your-key-here"
 ```
 
-The current public tool set is:
+Add this to your shell profile (`~/.bashrc`, `~/.zshrc`) to persist.
 
-- `search_skills`
-- `get_skill_context`
-- `evaluate_execution_plan`
-- `query_epistemic_rules`
+### "No skills found"
 
-Client-specific setup guides:
+Make sure you enabled the skill after installing:
 
-- [General MCP runtime](./mcp.md)
-- [Claude Code guide](./mcp-claude-code.md)
-- [Codex guide](./mcp-codex.md)
+```bash
+ontoskills enable mareasw/greeting/hello
+```
 
-## What's Next?
+### "SHACL validation failed"
 
-- [CLI](/cli/) — Full command surface and product workflows
-- [Marketplace](/marketplace/) — Search and install published skills
-- [Compiler](/compiler/) — Install the optional compiler
-- [Skill Authoring](/authoring/) — Import and compile source repositories
-- [Store](/registry/) — Install, update, remove, and uninstall skills
-- [Troubleshooting](/troubleshooting/) — Diagnose install and runtime issues
-- [Roadmap](/roadmap/) — See what's coming
-- [GitHub](https://github.com/mareasw/ontoskills) — Contribute
+Your skill is missing required fields. Check:
+- At least one `resolvesIntent`
+- The skill has clear structure
+
+Run with `-v` for details:
+
+```bash
+ontoskills compile my-skill -v
+```

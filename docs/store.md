@@ -1,0 +1,214 @@
+---
+title: Store
+description: OntoStore, third-party stores, and package lifecycle
+---
+
+OntoSkills uses a simple distribution model:
+
+- **OntoStore** — built in by default
+- **Third-party stores** — added explicitly
+- **Source imports** — cloned and compiled locally
+
+---
+
+## Store Types
+
+### OntoStore (Built-in)
+
+OntoStore ships with the product. No configuration needed.
+
+```bash
+ontoskills search hello
+ontoskills install mareasw/greeting/hello
+ontoskills enable mareasw/greeting/hello
+```
+
+**Package ID format:** `owner/repo/skill`
+
+Example: `mareasw/office/xlsx`
+
+### Third-Party Stores
+
+Opt-in stores maintained by other teams or communities.
+
+```bash
+# Add a store
+ontoskills store add-source acme https://example.com/index.json
+
+# List configured stores
+ontoskills store list
+
+# Remove a store
+ontoskills store remove-source acme
+```
+
+Third-party packages use the same ID format and install flow.
+
+### Source Imports
+
+Raw repositories with `SKILL.md` files, compiled locally.
+
+```bash
+ontoskills import-source https://github.com/user/skill-repo
+```
+
+- Cloned to `~/.ontoskills/skills/vendor/`
+- Compiled to `~/.ontoskills/ontologies/vendor/`
+- Requires OntoCore compiler installed
+
+---
+
+## Package Lifecycle
+
+### Install
+
+```bash
+ontoskills install mareasw/office/xlsx
+```
+
+Downloads compiled `.ttl` from the store and places it in `~/.ontoskills/ontologies/`.
+
+### Enable / Disable
+
+```bash
+ontoskills enable mareasw/office/xlsx
+ontoskills disable mareasw/office/xlsx
+```
+
+Only **enabled** skills are visible to OntoMCP. Install ≠ Enable.
+
+### Update
+
+```bash
+ontoskills update mareasw/office/xlsx
+```
+
+Fetches the latest version from the store.
+
+### Remove
+
+```bash
+ontoskills remove mareasw/office/xlsx
+```
+
+Deletes the package from local storage.
+
+### Rebuild Index
+
+```bash
+ontoskills rebuild-index
+```
+
+Regenerates `index.enabled.ttl` from all enabled skills. Run this if you manually modified `.ttl` files.
+
+---
+
+## CLI Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `search <query>` | Search skills across all stores |
+| `install <package-id>` | Install a compiled package |
+| `enable <package-id>` | Enable for MCP runtime |
+| `disable <package-id>` | Disable from MCP runtime |
+| `remove <package-id>` | Uninstall package |
+| `update <package-id>` | Update to latest version |
+| `list-installed` | List all installed packages |
+| `store list` | List configured stores |
+| `store add-source <name> <url>` | Add third-party store |
+| `store remove-source <name>` | Remove third-party store |
+| `import-source <url>` | Import and compile source repo |
+| `rebuild-index` | Regenerate enabled index |
+| `uninstall --all` | Remove entire managed home |
+
+---
+
+## Local Layout
+
+```text
+~/.ontoskills/
+├── bin/                    # Managed binaries
+│   └── ontomcp
+├── core/                   # Compiler runtime (optional)
+├── ontologies/             # Compiled ontologies
+│   ├── ontoskills-core.ttl
+│   ├── index.ttl
+│   ├── index.enabled.ttl
+│   └── */ontoskill.ttl
+├── skills/                 # Source skills
+│   └── vendor/             # Imported repositories
+└── state/                  # Metadata and locks
+    ├── stores.json
+    └── installed.json
+```
+
+---
+
+## Store Index Format
+
+Stores serve a static `index.json`:
+
+```json
+{
+  "version": "1.0",
+  "packages": [
+    {
+      "id": "mareasw/office/xlsx",
+      "name": "xlsx",
+      "description": "Excel file generation skill",
+      "version": "1.2.0",
+      "url": "https://github.com/mareasw/ontoskills/releases/download/xlsx-1.2.0/xlsx.ttl"
+    }
+  ]
+}
+```
+
+---
+
+## Troubleshooting
+
+### "Package not found"
+
+- Check the package ID spelling
+- Run `ontoskills search <query>` to discover available packages
+- If using third-party store, verify it's configured: `ontoskills store list`
+
+### "Skill not visible in MCP"
+
+Skills must be **enabled**, not just installed:
+
+```bash
+ontoskills enable mareasw/office/xlsx
+ontoskills rebuild-index
+```
+
+### "Source import failed"
+
+Ensure OntoCore is installed:
+
+```bash
+ontoskills install core
+```
+
+Then retry the import.
+
+### "Index corrupted"
+
+Rebuild from scratch:
+
+```bash
+ontoskills rebuild-index
+```
+
+---
+
+## Practical Rules
+
+| Command | What it does |
+|---------|--------------|
+| `install mcp` | Installs the MCP runtime |
+| `install core` | Installs the compiler |
+| `install <id>` | Installs a compiled package |
+| `import-source <url>` | Clones and compiles source |
+| `enable` / `disable` | Controls MCP visibility |
+| OntoStore | Built-in, never needs `store add-source` |

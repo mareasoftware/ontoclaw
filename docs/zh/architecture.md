@@ -129,34 +129,46 @@ flowchart LR
 
 ```
 ontoskills/
-├── core/                    # OntoCore — Python 技能编译器
-│   ├── cli.py               # Click CLI 接口
-│   ├── config.py            # 配置常量
-│   ├── core_ontology.py     # 命名空间和 TBox 本体创建
-│   ├── differ.py            # 语义漂移检测器
-│   ├── exceptions.py        # 带退出码的异常层次结构
-│   ├── extractor.py         # ID 和哈希生成
-│   ├── linter.py            # 静态本体检查器
-│   ├── schemas.py           # Pydantic 模型
-│   ├── security.py          # 深度防御安全
-│   ├── serialization.py     # 带 SHACL 守门员的 RDF 序列化
-│   ├── sparql.py            # SPARQL 查询引擎
-│   ├── storage.py           # 文件 I/O、合并、孤立清理
-│   ├── transformer.py       # LLM 工具使用提取
-│   ├── validator.py         # SHACL 验证守门员
-│   └── tests/               # 测试套件（170+ 测试）
-├── mcp/                     # OntoMCP — Rust MCP 服务器
-│   ├── Cargo.toml           # Rust 包清单
+├── core/                       # OntoCore — Python 技能编译器
+│   ├── src/
+│   │   ├── cli/                # Click CLI 命令
+│   │   │   ├── compile.py      # 编译命令
+│   │   │   ├── query.py        # SPARQL 查询命令
+│   │   │   └── ...
+│   │   ├── config.py           # 配置常量
+│   │   ├── core_ontology.py    # 命名空间和 TBox 本体创建
+│   │   ├── differ.py           # 语义漂移检测器
+│   │   ├── drift_report.py     # 漂移报告生成器
+│   │   ├── embeddings/         # 向量嵌入导出
+│   │   ├── env.py              # 环境加载
+│   │   ├── exceptions.py       # 带退出码的异常层次结构
+│   │   ├── explainer.py        # 技能解释生成器
+│   │   ├── extractor.py        # ID 和哈希生成
+│   │   ├── graph_export.py     # 图格式导出
+│   │   ├── linter.py           # 静态本体检查器
+│   │   ├── prompts.py          # LLM 提示模板
+│   │   ├── registry/           # 商店/包管理
+│   │   ├── schemas.py          # Pydantic 模型
+│   │   ├── security.py         # 深度防御安全
+│   │   ├── serialization.py    # 带 SHACL 守门员的 RDF 序列化
+│   │   ├── snapshot.py         # 本体快照
+│   │   ├── sparql.py           # SPARQL 查询引擎
+│   │   ├── storage.py          # 文件 I/O、合并、孤立清理
+│   │   ├── transformer.py      # LLM 工具使用提取
+│   │   └── validator.py        # SHACL 验证守门员
+│   └── tests/                  # 测试套件
+├── mcp/                        # OntoMCP — Rust MCP 服务器
+│   ├── Cargo.toml              # Rust 包清单
 │   └── src/
-│       ├── main.rs          # MCP stdio 服务器
-│       └── catalog.rs       # 本体目录 + 规划器
-├── skills/                  # 输入：SKILL.md 定义
-├── ontoskills/              # 输出：已编译的 .ttl 文件
-│   ├── ontoskills-core.ttl  # 带状态的核心本体
-│   └── */ontoskill.ttl     # 单个技能模块
-├── registry/                # OntoStore 蓝图
+│       ├── main.rs             # MCP stdio 服务器
+│       └── ...
+├── skills/                     # 输入：SKILL.md 定义
+├── ontoskills/                 # 输出：已编译的 .ttl 文件
+│   ├── ontoskills-core.ttl     # 带状态的核心本体
+│   └── */ontoskill.ttl         # 单个技能模块
+├── registry/                   # OntoStore 蓝图
 └── specs/
-    └── ontoskills.shacl.ttl   # SHACL 形状宪法
+    └── ontoskills.shacl.ttl    # SHACL 形状宪法
 ```
 
 **任何源技能目录都可以** — 添加一个 `SKILL.md` 文件，OntoCore 就会将其编译为已验证的本体模块。

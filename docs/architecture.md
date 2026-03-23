@@ -129,34 +129,46 @@ flowchart LR
 
 ```
 ontoskills/
-├── core/                    # OntoCore — Python skill compiler
-│   ├── cli.py               # Click CLI interface
-│   ├── config.py            # Configuration constants
-│   ├── core_ontology.py     # Namespace and TBox ontology creation
-│   ├── differ.py            # Semantic drift detector
-│   ├── exceptions.py        # Exception hierarchy with exit codes
-│   ├── extractor.py         # ID and hash generation
-│   ├── linter.py            # Static ontology linter
-│   ├── schemas.py           # Pydantic models
-│   ├── security.py          # Defense-in-depth security
-│   ├── serialization.py     # RDF serialization with SHACL gatekeeper
-│   ├── sparql.py            # SPARQL query engine
-│   ├── storage.py           # File I/O, merging, orphan cleanup
-│   ├── transformer.py       # LLM tool-use extraction
-│   ├── validator.py         # SHACL validation gatekeeper
-│   └── tests/               # Test suite (170+ tests)
-├── mcp/                     # OntoMCP — Rust MCP server
-│   ├── Cargo.toml           # Rust package manifest
+├── core/                       # OntoCore — Python skill compiler
+│   ├── src/
+│   │   ├── cli/                # Click CLI commands
+│   │   │   ├── compile.py      # Compilation command
+│   │   │   ├── query.py        # SPARQL query command
+│   │   │   └── ...
+│   │   ├── config.py           # Configuration constants
+│   │   ├── core_ontology.py    # Namespace and TBox ontology creation
+│   │   ├── differ.py           # Semantic drift detector
+│   │   ├── drift_report.py     # Drift report generator
+│   │   ├── embeddings/         # Vector embeddings export
+│   │   ├── env.py              # Environment loading
+│   │   ├── exceptions.py       # Exception hierarchy with exit codes
+│   │   ├── explainer.py        # Skill explanation generator
+│   │   ├── extractor.py        # ID and hash generation
+│   │   ├── graph_export.py     # Graph format export
+│   │   ├── linter.py           # Static ontology linter
+│   │   ├── prompts.py          # LLM prompt templates
+│   │   ├── registry/           # Store/package management
+│   │   ├── schemas.py          # Pydantic models
+│   │   ├── security.py         # Defense-in-depth security
+│   │   ├── serialization.py    # RDF serialization with SHACL gatekeeper
+│   │   ├── snapshot.py         # Ontology snapshots
+│   │   ├── sparql.py           # SPARQL query engine
+│   │   ├── storage.py          # File I/O, merging, orphan cleanup
+│   │   ├── transformer.py      # LLM tool-use extraction
+│   │   └── validator.py        # SHACL validation gatekeeper
+│   └── tests/                  # Test suite
+├── mcp/                        # OntoMCP — Rust MCP server
+│   ├── Cargo.toml              # Rust package manifest
 │   └── src/
-│       ├── main.rs          # MCP stdio server
-│       └── catalog.rs       # Ontology catalog + planner
-├── skills/                  # Input: SKILL.md definitions
-├── ontoskills/              # Output: compiled .ttl files
-│   ├── ontoskills-core.ttl  # Core ontology with states
-│   └── */ontoskill.ttl     # Individual skill modules
-├── registry/                # OntoStore blueprint
+│       ├── main.rs             # MCP stdio server
+│       └── ...
+├── skills/                     # Input: SKILL.md definitions
+├── ontoskills/                 # Output: compiled .ttl files
+│   ├── ontoskills-core.ttl     # Core ontology with states
+│   └── */ontoskill.ttl         # Individual skill modules
+├── registry/                   # OntoStore blueprint
 └── specs/
-    └── ontoskills.shacl.ttl   # SHACL shapes constitution
+    └── ontoskills.shacl.ttl    # SHACL shapes constitution
 ```
 
 **Any source skill directory works** — add a `SKILL.md` file and OntoCore will compile it to a validated ontology module.

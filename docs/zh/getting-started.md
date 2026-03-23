@@ -1,106 +1,225 @@
 ---
 title: 快速开始
-description: 安装 OntoSkills、OntoMCP 和 OntoCore
+description: 安装 OntoSkills 并查询你的第一个技能
 ---
 
-OntoSkills 作为产品套件发布，包含三个部分：
+在本教程中，你将安装 OntoSkills 并对已编译的技能本体运行你的第一个 SPARQL 查询。
 
-- `ontoskills` - 面向用户的 CLI
-- `ontomcp` - 本地 MCP 运行时
-- `ontocore` - 可选的源技能编译器
+**完成后你将拥有：**
+- 一个可用的 OntoSkills 安装
+- 一个从 OntoStore 安装的技能
+- 一个成功的 SPARQL 查询结果
 
-OntoStore 默认内置。第三方商店可以显式添加。
+预计时间：~5 分钟
+
+---
 
 ## 前置条件
 
-- **Node.js** 18+ 用于 `ontoskills` CLI
-- **Git** 用于源导入
-- 可选：**Python** 3.10+ 如果你安装 `ontocore`
+开始之前，确保你有：
 
-## 安装
+- **Node.js** 18+（[安装](https://nodejs.org/)）
+- **Git**（[安装](https://git-scm.com/)）
+- **Anthropic API key**（从 [console.anthropic.com](https://console.anthropic.com/) 获取）
+
+---
+
+## 第一步：安装 CLI
+
+打开终端并运行：
 
 ```bash
 npx ontoskills install mcp
-npx ontoskills install core
 ```
 
-这将在 `~/.ontoskills/` 下创建一个托管的用户主目录，包含：
+这将在 `~/.ontoskills/` 下创建一个托管主目录，包含：
 
-- `bin/ontomcp`
-- `core/` 用于编译器运行时（如果已安装）
-- `ontoskills/` 用于已编译的本体包
-- `state/` 用于锁定文件和商店元数据
+- `bin/ontomcp` — MCP 运行时
+- `ontoskills/` — 已编译的本体包
+- `state/` — 锁定文件和元数据
 
-## 常用命令
+**预期输出：**
+```
+✓ 已安装 ontomcp 到 ~/.ontoskills/bin/ontomcp
+✓ 已创建 ~/.ontoskills/ontologies/
+✓ 已创建 ~/.ontoskills/state/
+```
+
+---
+
+## 第二步：从 OntoStore 安装技能
+
+OntoStore 已内置。让我们安装一个问候技能：
 
 ```bash
+ontoskills search hello
+```
+
+**预期输出：**
+```
+找到 1 个技能：
+  mareasw/greeting/hello - 简单的问候技能
+```
+
+安装并启用它：
+
+```bash
+ontoskills install mareasw/greeting/hello
+ontoskills enable mareasw/greeting/hello
+```
+
+**预期输出：**
+```
+✓ 已安装 mareasw/greeting/hello
+✓ 已启用 mareasw/greeting/hello
+```
+
+---
+
+## 第三步：查询技能
+
+现在让我们用 SPARQL 查询已安装的技能：
+
+```bash
+ontoskills query "SELECT ?skill ?intent WHERE { ?skill a oc:Skill . ?skill oc:resolvesIntent ?intent }"
+```
+
+**预期输出：**
+```text
+?skill                    ?intent
+─────────────────────────────────────
+skill:hello               "say_hello"
+```
+
+你刚刚查询了一个已编译的本体。结果是确定性的 — 相同的查询，相同的结果，每次都是。
+
+---
+
+## 第四步：（可选）安装编译器
+
+如果你想从源文件编写自定义技能，安装编译器：
+
+```bash
+ontoskills install core
+```
+
+系统要求：
+- **Python** 3.10+
+- 设置 `ANTHROPIC_API_KEY` 环境变量
+
+```bash
+export ANTHROPIC_API_KEY="你的-key"
 ontoskills init-core
-ontoskills compile
-ontoskills compile my-skill
-ontoskills query "SELECT ?s WHERE { ?s a oc:Skill }"
-ontoskills list-skills
-ontoskills security-audit
 ```
 
-如果你只需要运行时和已发布的技能，则不需要编译器命令。
+这会创建 `ontoskills-core.ttl` — 包含类和属性的基础本体。
 
-## 商店工作流
+---
 
-### 内置 OntoStore
+## 第五步：（可选）编写你的第一个技能
 
-OntoStore 已经对 `ontoskills` 可用。你可以发现并安装已发布的技能，无需任何额外设置。
+创建一个简单的技能：
 
 ```bash
-npx ontoskills search hello
-npx ontoskills install mareasw/greeting/hello
-npx ontoskills enable mareasw/greeting/hello
+mkdir -p skills/my-first-skill
 ```
 
-### 第三方商店
+创建 `skills/my-first-skill/SKILL.md`：
+
+```markdown
+# 我的第一个技能
+
+一个简单的演示技能。
+
+## 功能
+
+这个技能按名字问候用户。
+
+## 何时使用
+
+当用户想要友好的问候时使用。
+
+## 如何使用
+
+1. 询问用户的名字
+2. 说"你好，{名字}！"
+```
+
+编译它：
 
 ```bash
-ontoskills store add-source acme https://example.com/index.json
-ontoskills store list
+ontoskills compile my-first-skill
 ```
 
-### 导入源技能
+**预期输出：**
+```
+✓ 已编译 my-first-skill
+  性质: 一个简单的演示技能
+  意图: greet_user
+```
 
-包含 `SKILL.md` 文件的原始仓库可以在本地导入和编译：
+查询你的技能：
 
 ```bash
-ontoskills import-source https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+ontoskills query "SELECT ?intent WHERE { skill:my_first_skill oc:resolvesIntent ?intent }"
 ```
 
-导入的源技能存储在 `~/.ontoskills/skills/vendor/` 下，编译输出位于 `~/.ontoskills/ontoskills/vendor/`。
+---
 
-## MCP 服务器
+## 你学到了什么
 
-OntoMCP 通过模型上下文协议暴露已编译的本体。
+- 如何安装 OntoSkills CLI 和 MCP 运行时
+- 如何从 OntoStore 安装技能
+- 如何用 SPARQL 查询技能
+- （可选）如何编写和编译自己的技能
+
+---
+
+## 下一步
+
+现在你已经设置好了：
+
+| 目标 | 阅读 |
+|------|------|
+| 学习所有 CLI 命令 | [CLI 参考](/cli/) |
+| 浏览可用技能 | [市场](/marketplace/) |
+| 编写自定义技能 | [技能创作](/authoring/) |
+| 理解工作原理 | [架构](/architecture/) |
+| 连接到你的 AI 客户端 | [MCP 设置](/mcp/) |
+| 修复问题 | [故障排除](/troubleshooting/) |
+
+---
+
+## 常见问题
+
+### "命令未找到：ontoskills"
+
+确保你运行了 `npx ontoskills install mcp`，并且 `~/.ontoskills/bin` 目录在你的 PATH 中，或者使用 `npx ontoskills` 作为命令。
+
+### "ANTHROPIC_API_KEY 未设置"
 
 ```bash
-npx ontoskills install mcp
+export ANTHROPIC_API_KEY="你的-key"
 ```
 
-当前的公共工具集是：
+将此添加到你的 shell 配置文件（`~/.bashrc`、`~/.zshrc`）以持久化。
 
-- `search_skills`
-- `get_skill_context`
-- `evaluate_execution_plan`
-- `query_epistemic_rules`
+### "未找到技能"
 
-特定客户端设置指南：
+确保你在安装后启用了技能：
 
-- [通用 MCP 运行时](./mcp.md)
-- [Claude Code 指南](./mcp-claude-code.md)
-- [Codex 指南](./mcp-codex.md)
+```bash
+ontoskills enable mareasw/greeting/hello
+```
 
-## 下一步？
+### "SHACL 验证失败"
 
-- [CLI](/cli/) — 完整命令界面和产品工作流
-- [市场](/marketplace/) — 搜索和安装已发布的技能
-- [编译器](/compiler/) — 安装可选编译器
-- [技能创作](/authoring/) — 导入和编译源仓库
-- [商店](/registry/) — 安装、更新、移除和卸载技能
-- [故障排除](/troubleshooting/) — 诊断安装和运行时问题
-- [路线图](/roadmap/) — 查看即将推出的内容
-- [GitHub](https://github.com/mareasw/ontoskills) — 贡献
+你的技能缺少必需字段。检查：
+- 至少一个 `resolvesIntent`
+- 技能有清晰的结构
+
+使用 `-v` 查看详细信息：
+
+```bash
+ontoskills compile my-skill -v
+```

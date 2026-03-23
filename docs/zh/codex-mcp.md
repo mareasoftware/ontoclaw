@@ -22,7 +22,7 @@ npx ontoskills install mcp
 基于 Codex 的工作流使用与其他本地客户端相同的 MCP 约定：
 
 - 将 `ontomcp` 作为本地 `stdio` 子进程启动
-- 将其指向 `~/.ontoskills/ontoskills` 中的托管本体主目录
+- 将其指向 `~/.ontoskills/ontologies` 中的托管本体主目录
 - 让客户端调用四个公共工具
 
 要注册的稳定可执行文件是：
@@ -34,13 +34,13 @@ npx ontoskills install mcp
 ## 推荐的运行时命令
 
 ```bash
-~/.ontoskills/bin/ontomcp --ontology-root ~/.ontoskills/ontoskills
+~/.ontoskills/bin/ontomcp --ontology-root ~/.ontoskills/ontologies
 ```
 
 如果你的 Codex 客户端支持基于环境的配置，等效设置是：
 
 ```bash
-ONTOMCP_ONTOLOGY_ROOT=~/.ontoskills/ontoskills
+ONTOMCP_ONTOLOGY_ROOT=~/.ontoskills/ontologies
 ```
 
 ## 暴露的工具

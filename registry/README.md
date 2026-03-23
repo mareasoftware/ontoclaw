@@ -38,7 +38,7 @@ That source import flow:
 - clones or copies the repository into `~/.ontoskills/skills/vendor/<slug>`
 - discovers every `SKILL.md`
 - compiles the discovered skills locally
-- writes compiled output into `~/.ontoskills/ontoskills/vendor/<package_id>`
+- writes compiled output into `~/.ontoskills/ontologies/vendor/<package_id>`
 - leaves imported skills disabled until explicitly enabled
 
 ## Registry Repo Layout
