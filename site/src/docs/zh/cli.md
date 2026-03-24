@@ -277,7 +277,7 @@ ontoskills uninstall --all
 
 ## 另见
 
-- [快速开始](/getting-started/) — 安装教程
-- [编译器](/compiler/) — OntoCore 参考
-- [商店](/store/) — 包管理详情
-- [故障排除](/troubleshooting/) — 常见问题
+- [快速开始](/zh/getting-started/) — 安装教程
+- [编译器](/zh/compiler/) — OntoCore 参考
+- [商店](/zh/store/) — 包管理详情
+- [故障排除](/zh/troubleshooting/) — 常见问题

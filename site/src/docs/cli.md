@@ -123,14 +123,6 @@ Add a third-party skill store.
 ontoskills store add-source acme https://example.com/skills/index.json
 ```
 
-### `store remove-source <name>`
-
-Remove a third-party store.
-
-```bash
-ontoskills store remove-source acme
-```
-
 ---
 
 ## Import Commands

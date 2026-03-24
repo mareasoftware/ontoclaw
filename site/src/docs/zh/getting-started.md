@@ -179,12 +179,12 @@ ontoskills query "SELECT ?intent WHERE { skill:my_first_skill oc:resolvesIntent 
 
 | 目标 | 阅读 |
 |------|------|
-| 学习所有 CLI 命令 | [CLI 参考](/cli/) |
-| 浏览可用技能 | [市场](/marketplace/) |
-| 编写自定义技能 | [技能创作](/authoring/) |
-| 理解工作原理 | [架构](/architecture/) |
-| 连接到你的 AI 客户端 | [MCP 设置](/mcp/) |
-| 修复问题 | [故障排除](/troubleshooting/) |
+| 学习所有 CLI 命令 | [CLI 参考](/zh/cli/) |
+| 浏览可用技能 | [市场](/zh/marketplace/) |
+| 编写自定义技能 | [技能创作](/zh/authoring/) |
+| 理解工作原理 | [架构](/zh/architecture/) |
+| 连接到你的 AI 客户端 | [MCP 设置](/zh/mcp/) |
+| 修复问题 | [故障排除](/zh/troubleshooting/) |
 
 ---
 

@@ -38,9 +38,6 @@ ontoskills store add-source acme https://example.com/index.json
 
 # List configured stores
 ontoskills store list
-
-# Remove a store
-ontoskills store remove-source acme
 ```
 
 Third-party packages use the same ID format and install flow.
@@ -151,14 +148,11 @@ Stores serve a static `index.json`:
 
 ```json
 {
-  "version": "1.0",
   "packages": [
     {
-      "id": "mareasw/office/xlsx",
-      "name": "xlsx",
-      "description": "Excel file generation skill",
-      "version": "1.2.0",
-      "url": "https://github.com/mareasw/ontoskills/releases/download/xlsx-1.2.0/xlsx.ttl"
+      "package_id": "mareasw/office",
+      "manifest_url": "./packages/mareasw/office/package.json",
+      "trust_tier": "verified"
     }
   ]
 }

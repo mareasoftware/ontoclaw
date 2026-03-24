@@ -38,9 +38,6 @@ ontoskills store add-source acme https://example.com/index.json
 
 # 列出已配置的商店
 ontoskills store list
-
-# 移除商店
-ontoskills store remove-source acme
 ```
 
 第三方包使用相同的 ID 格式和安装流程。

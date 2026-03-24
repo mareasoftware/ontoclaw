@@ -111,12 +111,12 @@ ontocore query "SELECT ?skill WHERE { ?skill oc:resolvesIntent 'create_pdf' }"
 
 ## 文档
 
-- **[概述](https://ontoskills.sh/zh/overview)** — OntoSkills 是什么及其重要性
-- **[快速开始](https://ontoskills.sh/zh/getting-started)** — 安装和入门
-- **[架构](https://ontoskills.sh/zh/architecture)** — 系统如何工作
-- **[知识提取](https://ontoskills.sh/zh/knowledge-extraction)** — 从技能中提取价值
-- **[商店与包](https://ontoskills.sh/zh/registry)** — 包分发和导入
-- **[路线图](https://ontoskills.sh/zh/roadmap)** — 开发阶段
+- **[概述](https://ontoskills.sh/zh/overview/)** — OntoSkills 是什么及其重要性
+- **[快速开始](https://ontoskills.sh/zh/getting-started/)** — 安装和入门
+- **[架构](https://ontoskills.sh/zh/architecture/)** — 系统如何工作
+- **[知识提取](https://ontoskills.sh/zh/knowledge-extraction/)** — 从技能中提取价值
+- **[商店与包](https://ontoskills.sh/zh/store/)** — 包分发和导入
+- **[路线图](https://ontoskills.sh/zh/roadmap/)** — 开发阶段
 
 ---
 

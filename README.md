@@ -111,12 +111,12 @@ Or use `npx ontoskills` without installing.
 
 ## Documentation
 
-- **[Overview](https://ontoskills.sh/docs/overview)** — What is OntoSkills and why it matters
-- **[Getting Started](https://ontoskills.sh/docs/getting-started)** — Installation and first steps
-- **[Architecture](https://ontoskills.sh/docs/architecture)** — How the system works
-- **[Knowledge Extraction](https://ontoskills.sh/docs/knowledge-extraction)** — Extracting value from skills
-- **[Store & Packages](https://ontoskills.sh/docs/registry)** — Package distribution and import
-- **[Roadmap](https://ontoskills.sh/docs/roadmap)** — Development phases
+- **[Overview](https://ontoskills.sh/overview/)** — What is OntoSkills and why it matters
+- **[Getting Started](https://ontoskills.sh/getting-started/)** — Installation and first steps
+- **[Architecture](https://ontoskills.sh/architecture/)** — How the system works
+- **[Knowledge Extraction](https://ontoskills.sh/knowledge-extraction/)** — Extracting value from skills
+- **[Store & Packages](https://ontoskills.sh/store/)** — Package distribution and import
+- **[Roadmap](https://ontoskills.sh/roadmap/)** — Development phases
 
 ---
 
