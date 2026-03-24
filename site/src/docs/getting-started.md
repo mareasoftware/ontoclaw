@@ -179,7 +179,7 @@ Now that you're set up:
 | Goal | Read |
 |------|------|
 | Learn all CLI commands | [CLI Reference](/cli/) |
-| Browse available skills | [OntoStore UI](/ontostore-ui/) |
+| Browse available skills | [OntoStore](/ontostore/) |
 | Write custom skills | [Skill Authoring](/authoring/) |
 | Understand how it works | [Architecture](/architecture/) |
 | Connect to your AI client | [MCP Setup](/mcp/) |
