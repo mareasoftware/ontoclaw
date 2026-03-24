@@ -160,9 +160,9 @@ If nothing is found locally, OntoMCP falls back to:
 
 **Override**:
 ```bash
---ontology-root /path/to/ontoskills
+--ontology-root /path/to/ontology-root
 # or
-ONTOMCP_ONTOLOGY_ROOT=/path/to/ontoskills
+ONTOMCP_ONTOLOGY_ROOT=/path/to/ontology-root
 ```
 
 ---
