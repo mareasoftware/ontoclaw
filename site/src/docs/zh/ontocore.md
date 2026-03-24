@@ -148,7 +148,8 @@ ontoskills security-audit
 ontoskills/
 ├── ontoskills-core.ttl      # 核心 TBox（共享类/属性）
 ├── index.ttl                # 带 owl:imports 的清单
-├── index.enabled.ttl        # 为 MCP 启用的技能
+├── system/
+│   └── index.enabled.ttl    # 为 MCP 启用的技能
 └── <skill-path>/
     └── ontoskill.ttl        # 单个技能模块
 ```

@@ -414,5 +414,5 @@ Before publishing a skill:
 ## Next Steps
 
 - [Knowledge Extraction](/knowledge-extraction/) — Understanding all 26 node types
-- [Compiler](/compiler/) — OntoCore reference
+- [OntoCore](/ontocore/) — Compiler reference
 - [Getting Started](/getting-started/) — Compile your first skill

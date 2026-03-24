@@ -148,7 +148,8 @@ After compilation:
 ontoskills/
 ├── ontoskills-core.ttl      # Core TBox (shared classes/properties)
 ├── index.ttl                # Manifest with owl:imports
-├── index.enabled.ttl        # Skills enabled for MCP
+├── system/
+│   └── index.enabled.ttl    # Skills enabled for MCP
 └── <skill-path>/
     └── ontoskill.ttl        # Individual skill module
 ```

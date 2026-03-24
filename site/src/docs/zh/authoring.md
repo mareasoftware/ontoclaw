@@ -414,5 +414,5 @@ ontoskills compile my-skill -v
 ## 下一步
 
 - [知识提取](/zh/knowledge-extraction/) — 了解所有 26 种节点类型
-- [编译器](/zh/compiler/) — OntoCore 参考
+- [OntoCore](/zh/ontocore/) — 编译器参考
 - [快速开始](/zh/getting-started/) — 编译你的第一个技能

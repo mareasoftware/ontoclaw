@@ -121,7 +121,7 @@ Every skill is extracted with:
 - **[Getting Started](/getting-started/)** — Install and compile your first skill
 - **[CLI](/cli/)** — Learn the managed command surface
 - **[OntoStore](/ontostore/)** — Browse installable store skills
-- **[Compiler](/compiler/)** — Install OntoCore for custom skills
+- **[OntoCore](/ontocore/)** — Install compiler for custom skills
 - **[Store](/store/)** — Learn how official and third-party stores work
 - **[Architecture](/architecture/)** — Deep dive into the system design
 - **[Knowledge Extraction](/knowledge-extraction/)** — Understanding knowledge nodes
