@@ -241,6 +241,8 @@ ontoskills uninstall --all
 ├── ontologies/            # 已编译的本体包
 │   ├── ontoskills-core.ttl
 │   ├── index.ttl
+│   ├── system/            # 系统级文件
+│   │   └── index.enabled.ttl  # 已启用技能清单
 │   └── */ontoskill.ttl
 ├── skills/                # 源技能
 │   └── vendor/            # 导入的仓库

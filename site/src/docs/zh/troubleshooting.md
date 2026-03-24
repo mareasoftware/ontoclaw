@@ -169,6 +169,16 @@ ontoskills compile my-skill -v
 
 导入的技能默认启用。如果不可见：
 
+1. 重建索引：
+
+```bash
+ontoskills rebuild-index
+```
+
+2. 重启 MCP 进程
+
+3. 如果仍然不可见且技能之前被禁用过，重新启用它：
+
 ```bash
 ontoskills enable <qualified-id>
 ontoskills rebuild-index

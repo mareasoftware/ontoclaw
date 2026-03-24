@@ -97,7 +97,7 @@ ontoskills remove mareasw/office/xlsx
 ontoskills rebuild-index
 ```
 
-从所有已启用的技能重新生成 `index.enabled.ttl`。如果手动修改了 `.ttl` 文件，运行此命令。
+从所有已启用的技能重新生成 `~/.ontoskills/ontologies/system/index.enabled.ttl`。如果手动修改了 `.ttl` 文件，运行此命令。
 
 ---
 
@@ -130,7 +130,8 @@ ontoskills rebuild-index
 ├── ontologies/             # 已编译的本体
 │   ├── ontoskills-core.ttl
 │   ├── index.ttl
-│   ├── index.enabled.ttl
+│   ├── system/             # 系统级文件
+│   │   └── index.enabled.ttl  # 已启用技能清单
 │   └── */ontoskill.ttl
 ├── skills/                 # 源技能
 │   └── vendor/             # 导入的仓库

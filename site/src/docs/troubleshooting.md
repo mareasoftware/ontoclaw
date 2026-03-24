@@ -169,6 +169,16 @@ Use this skill when the user wants to extract text from PDF files.
 
 Imported skills are enabled by default. If not visible:
 
+1. Rebuild the index:
+
+```bash
+ontoskills rebuild-index
+```
+
+2. Restart the MCP process
+
+3. If still not visible and the skill was previously disabled, re-enable it:
+
 ```bash
 ontoskills enable <qualified-id>
 ontoskills rebuild-index

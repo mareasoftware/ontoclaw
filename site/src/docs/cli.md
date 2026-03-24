@@ -269,6 +269,8 @@ ontoskills uninstall --all
 ├── ontologies/            # Compiled ontology packages
 │   ├── ontoskills-core.ttl
 │   ├── index.ttl
+│   ├── system/            # System-level files
+│   │   └── index.enabled.ttl  # Enabled skills manifest
 │   └── */ontoskill.ttl
 ├── skills/                # Source skills
 │   └── vendor/            # Imported repositories

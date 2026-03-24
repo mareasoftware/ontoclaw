@@ -97,7 +97,7 @@ Deletes the package from local storage.
 ontoskills rebuild-index
 ```
 
-Regenerates `index.enabled.ttl` from all enabled skills. Run this if you manually modified `.ttl` files.
+Regenerates `~/.ontoskills/ontologies/system/index.enabled.ttl` from all enabled skills. Run this if you manually modified `.ttl` files.
 
 ---
 
@@ -130,7 +130,8 @@ Regenerates `index.enabled.ttl` from all enabled skills. Run this if you manuall
 ├── ontologies/             # Compiled ontologies
 │   ├── ontoskills-core.ttl
 │   ├── index.ttl
-│   ├── index.enabled.ttl
+│   ├── system/             # System-level files
+│   │   └── index.enabled.ttl  # Enabled skills manifest
 │   └── */ontoskill.ttl
 ├── skills/                 # Source skills
 │   └── vendor/             # Imported repositories
