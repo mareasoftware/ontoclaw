@@ -38,12 +38,12 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Documentation',
-          autogenerate: { directory: 'src/docs' },
+          autogenerate: { directory: '.' },
         },
       ],
     }),
     tailwind(),
   ],
   output: 'static',
-  site: 'https://ontoskills.marea.software',
+  site: 'https://ontoskills.sh',
 });

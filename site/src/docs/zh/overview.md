@@ -96,7 +96,7 @@ OntoSkills 使用 **描述逻辑 (OWL 2)** 将技能转换为形式化本体：
 |------|------|------|------|
 | **ontoskills** | CLI | ✅ 就绪 | 面向用户的安装器和管理器 |
 | **OntoCore** | Python | ✅ 就绪 | `SKILL.md` 源文件的技能编译器 |
-| **OntoMCP** | Rust | ✅ 就绪 | 具有 4 个整合语义工具的 MCP 服务器 |
+| **OntoMCP** | Rust | ✅ 就绪 | 具有 5 个语义工具的 MCP 服务器（含 search_intents） |
 | **OntoStore** | GitHub 仓库 | ✅ 就绪 | 官方编译技能商店 |
 | `skills/` | Markdown | 输入 | 人工编写的源技能 |
 | `ontoskills/` | Turtle | 输出 | 编译后的本体产物 |

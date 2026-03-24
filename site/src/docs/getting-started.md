@@ -34,7 +34,7 @@ npx ontoskills install mcp
 
 This creates a managed home at `~/.ontoskills/` with:
 - `bin/ontomcp` — the MCP runtime
-- `ontoskills/` — compiled ontology packages
+- `ontologies/` — compiled ontology packages
 - `state/` — lockfiles and metadata
 
 **Expected output:**

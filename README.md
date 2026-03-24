@@ -111,12 +111,12 @@ Or use `npx ontoskills` without installing.
 
 ## Documentation
 
-- **[Overview](docs/overview.md)** — What is OntoSkills and why it matters
-- **[Getting Started](docs/getting-started.md)** — Installation and first steps
-- **[Architecture](docs/architecture.md)** — How the system works
-- **[Knowledge Extraction](docs/knowledge-extraction.md)** — Extracting value from skills
-- **[Store & Packages](docs/registry.md)** — Package distribution and import
-- **[Roadmap](docs/roadmap.md)** — Development phases
+- **[Overview](https://ontoskills.sh/docs/overview)** — What is OntoSkills and why it matters
+- **[Getting Started](https://ontoskills.sh/docs/getting-started)** — Installation and first steps
+- **[Architecture](https://ontoskills.sh/docs/architecture)** — How the system works
+- **[Knowledge Extraction](https://ontoskills.sh/docs/knowledge-extraction)** — Extracting value from skills
+- **[Store & Packages](https://ontoskills.sh/docs/registry)** — Package distribution and import
+- **[Roadmap](https://ontoskills.sh/docs/roadmap)** — Development phases
 
 ---
 
@@ -124,4 +124,4 @@ Or use `npx ontoskills` without installing.
 
 MIT License — see [LICENSE](LICENSE) for details.
 
-*© 2026 [Marea Software](https://marea.software)*
+*© 2026 [MareaSW](https://ontoskills.sh)*

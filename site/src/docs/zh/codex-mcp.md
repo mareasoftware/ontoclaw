@@ -23,7 +23,7 @@ npx ontoskills install mcp
 
 - 将 `ontomcp` 作为本地 `stdio` 子进程启动
 - 将其指向 `~/.ontoskills/ontologies` 中的托管本体主目录
-- 让客户端调用四个公共工具
+- 让客户端调用五个公共工具（含可选的 search_intents）
 
 要注册的稳定可执行文件是：
 
