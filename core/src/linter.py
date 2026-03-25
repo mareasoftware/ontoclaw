@@ -10,18 +10,27 @@ Anthropic API and reports structural issues:
   - unreachable_skills: skill with requiresState but no skill yields those states
                         and the skill has no entry-point intents
 
+Phase 1 source linting (before compilation):
+  - third-person     : description should be in third person
+  - skill-md-length  : SKILL.md body should be under 500 lines
+  - reference-depth  : reference files should be one level deep from SKILL.md
+
 Each issue is returned as a LintIssue dataclass so callers can format the
 output however they like (Rich terminal, JSON, CI log).
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
 from rdflib import Graph, Namespace
 from rdflib.namespace import DCTERMS
+
+if TYPE_CHECKING:
+    from compiler.schemas import DirectoryScan
 
 OC = Namespace("https://ontoskills.sh/ontology#")
 
@@ -307,5 +316,152 @@ def _check_workflow_cycles(g: Graph) -> list[LintIssue]:
             for step_id in step_deps:
                 if step_id not in visited:
                     dfs(step_id, [])
+
+    return issues
+
+
+# ─── Phase 1 Source Linting ────────────────────────────────────────────────────
+
+
+# First-person pronouns to detect in descriptions
+FIRST_PERSON_PATTERNS = [
+    r'\bI\b',           # "I can help"
+    r'\bI\'m\b',        # "I'm able to"
+    r'\bI\'ll\b',       # "I'll process"
+    r'\bI\'ve\b',       # "I've created"
+    r'\bme\b',          # "helps me"
+    r'\bmy\b',          # "my skills"
+    r'\bmine\b',        # "this is mine"
+    r'\bwe\b',          # "we can"
+    r'\bour\b',         # "our approach"
+    r'\bYou can\b',     # "You can use this"
+    r'\bYou should\b',  # "You should"
+    r'\bYour\b',        # "Your data"
+]
+
+# Maximum recommended lines for SKILL.md body
+MAX_SKILL_MD_LINES = 500
+
+
+def lint_skill_source(dir_scan: "DirectoryScan") -> LintResult:
+    """
+    Lint Phase 1 source data before compilation.
+
+    Checks:
+    - third-person: Description should be in third person
+    - skill-md-length: SKILL.md body should be under 500 lines
+    - reference-depth: Reference files should be one level deep
+
+    Args:
+        dir_scan: DirectoryScan from Phase 1 loader
+
+    Returns:
+        LintResult with any issues found
+    """
+    result = LintResult()
+    skill_id = dir_scan.skill_id
+
+    # Check description for first-person language
+    result.issues.extend(_check_third_person(dir_scan.frontmatter.description, skill_id))
+
+    # Check SKILL.md body length
+    result.issues.extend(_check_skill_md_length(dir_scan.skill_md_content, skill_id))
+
+    # Check reference file depth
+    result.issues.extend(_check_reference_depth(dir_scan.files, skill_id))
+
+    return result
+
+
+def _check_third_person(description: str, skill_id: str) -> list[LintIssue]:
+    """
+    Check if description uses first-person language.
+
+    Anthropic best practice: descriptions should be in third person
+    because they are injected into the system prompt.
+    """
+    issues: list[LintIssue] = []
+    matches_found: list[str] = []
+
+    for pattern in FIRST_PERSON_PATTERNS:
+        if re.search(pattern, description, re.IGNORECASE):
+            # Extract the matched text for context
+            match = re.search(pattern, description, re.IGNORECASE)
+            if match:
+                matches_found.append(match.group())
+
+    if matches_found:
+        issues.append(LintIssue(
+            severity="warning",
+            code="third-person",
+            skill_id=skill_id,
+            message=f"Description contains first-person language: {', '.join(set(matches_found))}",
+            detail="Use third person (e.g., 'Processes files' instead of 'I process files'). "
+                   "Descriptions are injected into the system prompt.",
+        ))
+
+    return issues
+
+
+def _check_skill_md_length(content: str, skill_id: str) -> list[LintIssue]:
+    """
+    Check if SKILL.md body exceeds recommended length.
+
+    Anthropic best practice: keep SKILL.md under 500 lines for optimal performance.
+    """
+    issues: list[LintIssue] = []
+
+    # Count lines (excluding frontmatter)
+    # Find end of frontmatter
+    lines = content.split('\n')
+    body_start = 0
+
+    # Skip frontmatter (between --- delimiters)
+    if lines and lines[0].strip() == '---':
+        for i, line in enumerate(lines[1:], start=1):
+            if line.strip() == '---':
+                body_start = i + 1
+                break
+
+    body_lines = len(lines) - body_start
+
+    if body_lines > MAX_SKILL_MD_LINES:
+        issues.append(LintIssue(
+            severity="warning",
+            code="skill-md-length",
+            skill_id=skill_id,
+            message=f"SKILL.md body has {body_lines} lines (recommended max: {MAX_SKILL_MD_LINES})",
+            detail="Consider splitting content into separate reference files using progressive disclosure.",
+        ))
+
+    return issues
+
+
+def _check_reference_depth(files: list, skill_id: str) -> list[LintIssue]:
+    """
+    Check if reference files are more than one level deep.
+
+    Anthropic best practice: keep references one level deep from SKILL.md
+    to ensure Claude reads complete files when needed.
+    """
+    issues: list[LintIssue] = []
+
+    for file_info in files:
+        rel_path = file_info.relative_path
+        # Skip SKILL.md itself
+        if rel_path == "SKILL.md":
+            continue
+
+        # Count directory depth (number of path separators)
+        depth = rel_path.count('/')
+
+        if depth > 1:
+            issues.append(LintIssue(
+                severity="info",
+                code="reference-depth",
+                skill_id=skill_id,
+                message=f"File '{rel_path}' is {depth} levels deep (recommended: 1)",
+                detail="Deep references may be partially read. Consider flattening structure.",
+            ))
 
     return issues
