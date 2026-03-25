@@ -1,4 +1,5 @@
 import json
+import re
 import warnings
 from enum import Enum
 from pydantic import BaseModel, field_validator, model_validator, computed_field
@@ -201,3 +202,130 @@ class ExtractedSkill(BaseModel):
     def skill_type(self) -> Literal["executable", "declarative"]:
         """Derive skill type from presence of execution_payload."""
         return "executable" if self.execution_payload is not None else "declarative"
+
+
+# =============================================================================
+# Phase 1 Models (Python-only, no LLM)
+# =============================================================================
+
+class Frontmatter(BaseModel):
+    """YAML frontmatter extracted via Python parser.
+
+    Validates Anthropic skill authoring requirements:
+    - name: max 64 chars, lowercase, hyphens only, no reserved words
+    - description: max 1024 chars, no XML tags
+    """
+    name: str
+    description: str
+    version: str | None = None
+    metadata: dict[str, Any] = {}
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if len(v) > 64:
+            raise ValueError(f"Skill name exceeds 64 characters: {len(v)}")
+        if not re.match(r'^[a-z0-9-]+$', v):
+            raise ValueError("Skill name must be lowercase with hyphens only")
+        # Check for reserved words as exact match or prefix/suffix
+        reserved = ('anthropic', 'claude')
+        v_lower = v.lower()
+        for word in reserved:
+            if v_lower == word or v_lower.startswith(f"{word}-") or v_lower.endswith(f"-{word}"):
+                raise ValueError(f"Reserved word '{word}' not allowed in skill name")
+        return v
+
+    @field_validator('description')
+    @classmethod
+    def validate_description(cls, v: str) -> str:
+        if len(v) > 1024:
+            raise ValueError(f"Description exceeds 1024 characters: {len(v)}")
+        if re.search(r'<[^>]+>', v):
+            raise ValueError("Description contains XML tags (not allowed)")
+        return v
+
+
+class FileInfo(BaseModel):
+    """File metadata computed via Python, not LLM."""
+    relative_path: str
+    content_hash: str
+    file_size: int
+    mime_type: str
+
+
+class DirectoryScan(BaseModel):
+    """Phase 1 output - all filesystem metadata."""
+    frontmatter: Frontmatter
+    skill_id: str
+    qualified_id: str
+    content_hash: str
+    provenance_path: str
+    files: list[FileInfo]
+    skill_md_content: str
+    file_tree: str  # Formatted string for LLM context
+
+
+# =============================================================================
+# Phase 2 Models (LLM Extraction)
+# =============================================================================
+
+class ReferenceFile(BaseModel):
+    """Reference file identified by LLM for progressive disclosure."""
+    relative_path: str
+    purpose: Literal["api-reference", "examples", "guide", "domain-specific", "other"]
+
+
+class ExecutableScript(BaseModel):
+    """Executable script identified by LLM."""
+    relative_path: str
+    executor: Literal["python", "bash", "node", "other"]
+    execution_intent: Literal["execute", "read_only"] = "execute"
+    command_template: str | None = None
+    requirements: list[str] = []  # Plain tool names: ["pypdf", "pdfplumber"]
+    produces_output: str | None = None
+
+
+class Example(BaseModel):
+    """Input/output example pair for pattern matching."""
+    name: str
+    input_description: str
+    output_example: str
+    tags: list[str] = []
+
+
+class WorkflowStep(BaseModel):
+    """Single workflow step."""
+    step_id: str
+    description: str
+    expected_outcome: str | None = None
+    depends_on: list[str] = []
+
+
+class Workflow(BaseModel):
+    """Sequential workflow with dependencies."""
+    workflow_id: str
+    name: str
+    description: str
+    steps: list[WorkflowStep]
+
+
+# =============================================================================
+# Merged Model (Phase 1 + Phase 2)
+# =============================================================================
+
+class CompiledSkill(ExtractedSkill):
+    """Final compiler output - extends ExtractedSkill with new fields.
+
+    Includes:
+    - Phase 1 data: frontmatter, files (from loader.py)
+    - Phase 2 data: reference_files, executable_scripts, examples, workflows
+    """
+    # From Phase 1
+    frontmatter: Frontmatter | None = None
+    files: list[FileInfo] = []
+
+    # From Phase 2
+    reference_files: list[ReferenceFile] = []
+    executable_scripts: list[ExecutableScript] = []
+    examples: list[Example] = []
+    workflows: list[Workflow] = []

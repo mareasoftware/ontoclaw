@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from rdflib import Graph, Namespace, RDF, OWL, Literal, URIRef
+from rdflib import Graph, Namespace, RDF, OWL, Literal, URIRef, BNode
 from rdflib.namespace import DCTERMS, SKOS, PROV
 
 from compiler.schemas import ExtractedSkill
@@ -202,6 +202,90 @@ def serialize_skill(
 
         # Link skill to knowledge node
         graph.add((skill_uri, oc.impartsKnowledge, kn_uri))
+
+    # === Phase 2 Components (blank nodes) ===
+
+    # Reference Files (progressive disclosure)
+    for ref in getattr(skill, 'reference_files', []):
+        ref_node = BNode()
+        graph.add((skill_uri, oc.hasReferenceFile, ref_node))
+        graph.add((ref_node, RDF.type, oc.ReferenceFile))
+        graph.add((ref_node, oc.relativePath, Literal(ref.relative_path)))
+        graph.add((ref_node, oc.purpose, Literal(ref.purpose)))
+
+        # Look up file info for hash/size/mime
+        for f in getattr(skill, 'files', []):
+            if f.relative_path == ref.relative_path:
+                graph.add((ref_node, oc.contentHash, Literal(f.content_hash)))
+                graph.add((ref_node, oc.fileSize, Literal(f.file_size)))
+                graph.add((ref_node, oc.mimeType, Literal(f.mime_type)))
+                break
+
+    # Executable Scripts
+    for script in getattr(skill, 'executable_scripts', []):
+        script_node = BNode()
+        graph.add((skill_uri, oc.hasExecutableScript, script_node))
+        graph.add((script_node, RDF.type, oc.ExecutableScript))
+        graph.add((script_node, oc.relativePath, Literal(script.relative_path)))
+        graph.add((script_node, oc.executor, Literal(script.executor)))
+        graph.add((script_node, oc.executionIntent, Literal(script.execution_intent)))
+
+        if script.command_template:
+            graph.add((script_node, oc.commandTemplate, Literal(script.command_template)))
+
+        # Requirements as blank nodes
+        for req in script.requirements:
+            req_node = BNode()
+            graph.add((script_node, oc.hasRequirement, req_node))
+            graph.add((req_node, RDF.type, oc.Requirement))
+            graph.add((req_node, oc.requirementType, Literal("Tool")))
+            graph.add((req_node, oc.requirementValue, Literal(req)))
+            graph.add((req_node, oc.isOptional, Literal(False)))
+
+        if script.produces_output:
+            graph.add((script_node, oc.producesOutput, Literal(script.produces_output)))
+
+        # Look up file info for hash
+        for f in getattr(skill, 'files', []):
+            if f.relative_path == script.relative_path:
+                graph.add((script_node, oc.contentHash, Literal(f.content_hash)))
+                break
+
+    # Workflows
+    for wf in getattr(skill, 'workflows', []):
+        wf_node = BNode()
+        graph.add((skill_uri, oc.hasWorkflow, wf_node))
+        graph.add((wf_node, RDF.type, oc.Workflow))
+        graph.add((wf_node, oc.workflowId, Literal(wf.workflow_id)))
+        graph.add((wf_node, oc.workflowName, Literal(wf.name)))
+        graph.add((wf_node, oc.description, Literal(wf.description)))
+
+        for step in wf.steps:
+            step_node = BNode()
+            graph.add((wf_node, oc.hasStep, step_node))
+            graph.add((step_node, RDF.type, oc.WorkflowStep))
+            graph.add((step_node, oc.stepId, Literal(step.step_id)))
+            graph.add((step_node, oc.description, Literal(step.description)))
+            if step.expected_outcome:
+                graph.add((step_node, oc.expectedOutcome, Literal(step.expected_outcome)))
+            for dep in step.depends_on:
+                graph.add((step_node, oc.dependsOn, Literal(dep)))
+
+    # Examples
+    for ex in getattr(skill, 'examples', []):
+        ex_node = BNode()
+        graph.add((skill_uri, oc.hasExample, ex_node))
+        graph.add((ex_node, RDF.type, oc.Example))
+        graph.add((ex_node, oc.exampleName, Literal(ex.name)))
+        graph.add((ex_node, oc.inputDescription, Literal(ex.input_description)))
+        graph.add((ex_node, oc.outputExample, Literal(ex.output_example)))
+        for tag in ex.tags:
+            graph.add((ex_node, oc.hasTag, Literal(tag)))
+
+    # Frontmatter properties
+    if hasattr(skill, 'frontmatter') and skill.frontmatter:
+        graph.add((skill_uri, oc.hasName, Literal(skill.frontmatter.name)))
+        graph.add((skill_uri, oc.hasDescription, Literal(skill.frontmatter.description)))
 
 
 def serialize_skill_to_module(
