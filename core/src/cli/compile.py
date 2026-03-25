@@ -11,7 +11,6 @@ from rdflib import Graph, RDF
 
 from compiler.extractor import (
     generate_skill_id,
-    compute_skill_hash,
     generate_qualified_skill_id,
     generate_sub_skill_id,
     resolve_package_id,
@@ -36,6 +35,8 @@ from compiler.exceptions import (
     OrphanSubSkillsError,
 )
 from compiler.config import SKILLS_DIR, OUTPUT_DIR, resolve_ontology_root
+from compiler.loader import scan_skill_directory, LoaderError
+from compiler.schemas import CompiledSkill
 
 console = Console()
 
@@ -192,8 +193,18 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
 
     for skill_file in skill_md_files:
         skill_dir = skill_file.parent
-        skill_id = generate_skill_id(skill_dir.name)
-        skill_hash = compute_skill_hash(skill_dir)
+
+        # Phase 1: Scan directory and extract frontmatter
+        try:
+            dir_scan = scan_skill_directory(skill_dir)
+        except LoaderError as e:
+            console.print(f"[red]Phase 1 scan failed for {skill_dir.name}: {e}[/red]")
+            continue
+
+        # Use Phase 1 data for IDs and hash
+        skill_id = dir_scan.skill_id
+        skill_hash = dir_scan.content_hash
+        package_id = resolve_package_id(skill_dir)
 
         logger.info(f"Processing skill: {skill_id}")
 
@@ -220,29 +231,35 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
             except Exception as e:
                 logger.debug(f"Could not read existing skill: {e}")
 
-        # Security check
-        if skill_file.exists():
-            content = skill_file.read_text(encoding="utf-8")
-            try:
-                threats, passed = security_check(content, skip_llm=skip_security)
-                if not passed:
-                    console.print(f"[red]Security check failed for {skill_id}[/red]")
-                    for threat in threats:
-                        console.print(f"  - {threat.type}: {threat.match}")
-                    continue
-            except SecurityError as e:
-                console.print(f"[red]Security error: {e}[/red]")
+        # Security check (use Phase 1 content)
+        try:
+            threats, passed = security_check(dir_scan.skill_md_content, skip_llm=skip_security)
+            if not passed:
+                console.print(f"[red]Security check failed for {skill_id}[/red]")
+                for threat in threats:
+                    console.print(f"  - {threat.type}: {threat.match}")
                 continue
+        except SecurityError as e:
+            console.print(f"[red]Security error: {e}[/red]")
+            continue
 
-        # LLM extraction
+        # Phase 2: LLM extraction
         try:
             extracted = tool_use_loop(skill_dir, skill_hash, skill_id)
             extracted = enrich_extracted_skill(extracted, skill_dir, input_path)
+
+            # Create CompiledSkill with Phase 1 data
+            compiled = CompiledSkill(
+                **extracted.model_dump(),
+                frontmatter=dir_scan.frontmatter,
+                files=dir_scan.files,
+            )
+
             # Keep short/local ID for parent skill (sub-skills extend to this short parent ID)
-            # Note: extracted.id remains the short skill ID (e.g., "brainstorming"), used as extends_parent
+            # Note: compiled.id remains the short skill ID (e.g., "brainstorming"), used as extends_parent
             # Store with package_id for later serialization
-            _, package_id = skill_parent_map.get(skill_dir, (skill_id, "local"))
-            compiled_skills.append((extracted, package_id))
+            _, pkg_id = skill_parent_map.get(skill_dir, (skill_id, "local"))
+            compiled_skills.append((compiled, pkg_id))
             skill_output_paths.append(output_skill_path)
 
             logger.info(f"Successfully extracted: {skill_id}")
