@@ -266,6 +266,8 @@ def serialize_skill(
         if script.relative_path in files_index:
             f = files_index[script.relative_path]
             graph.add((script_node, oc.fileHash, Literal(f.content_hash)))
+            graph.add((script_node, oc.fileSize, Literal(f.file_size)))
+            graph.add((script_node, oc.fileMimeType, Literal(f.mime_type)))
 
     # Workflows
     for wf in getattr(skill, 'workflows', []):

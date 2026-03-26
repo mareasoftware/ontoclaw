@@ -8,6 +8,7 @@ Handles:
 """
 
 import hashlib
+import os
 import re
 from pathlib import Path
 
@@ -168,55 +169,65 @@ def scan_skill_directory(skill_dir: Path, package_id: str | None = None) -> Dire
     skill_id = frontmatter.name
     qualified_id = generate_qualified_skill_id(package_id, skill_id)
 
-    # Scan all files
+    # Scan all files using os.walk for efficient pruning of excluded directories
     files: list[FileInfo] = []
     dir_hash = hashlib.sha256()
 
-    for f in sorted(skill_dir.rglob('*')):
-        # Skip non-files and symlinks (security: prevent escape via symlink)
-        if not f.is_file() or f.is_symlink():
-            continue
+    # Directories to skip entirely (never descend into them)
+    EXCLUDED_DIRS = frozenset({
+        '__pycache__', 'node_modules', '.venv', 'venv',
+        '.git', '.hg', '.svn', '.idea', '.vscode',
+        'dist', 'build', 'target', '.pytest_cache'
+    })
 
-        # Use as_posix() for cross-platform compatibility (always uses /)
-        rel_path = f.relative_to(skill_dir).as_posix()
-        parts = rel_path.split('/')
+    for root, dirs, filenames in os.walk(skill_dir, topdown=True, followlinks=False):
+        # Prune excluded directories in-place (prevents descending into them)
+        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS and not d.startswith('.')]
 
-        # Skip hidden files and files inside hidden directories
-        # e.g., .git/config, .vscode/settings.json
-        if any(part.startswith('.') for part in parts):
-            continue
+        for filename in filenames:
+            # Skip hidden files
+            if filename.startswith('.'):
+                continue
 
-        # Skip common transient/irrelevant directories
-        if any(part in ('__pycache__', 'node_modules', '.venv', 'venv') for part in parts):
-            continue
+            f = Path(root) / filename
 
-        # SECURITY: Path traversal protection (Unix and Windows styles)
-        if '..' in parts or '\\' in rel_path:
-            continue
+            # Skip symlinks (security: prevent escape via symlink)
+            if f.is_symlink():
+                continue
 
-        # SECURITY: Verify resolved path stays within skill_dir
-        try:
-            resolved = f.resolve()
-            resolved.relative_to(skill_dir)
-        except ValueError:
-            continue
+            # SECURITY: Path traversal protection (Unix and Windows styles)
+            if '..' in filename or '\\' in filename:
+                continue
 
-        file_hash = compute_file_hash(f)
-        files.append(FileInfo(
-            relative_path=rel_path,
-            content_hash=file_hash,
-            file_size=f.stat().st_size,
-            mime_type=mime_type_from_path(f)
-        ))
+            # Use as_posix() for cross-platform compatibility (always uses /)
+            rel_path = f.relative_to(skill_dir).as_posix()
 
-        # Use structured encoding to avoid hash collisions:
-        # length-prefixed rel_path followed by length-prefixed file_hash
-        rel_bytes = rel_path.encode('utf-8')
-        hash_bytes = file_hash.encode('ascii')
-        dir_hash.update(len(rel_bytes).to_bytes(4, 'big'))
-        dir_hash.update(rel_bytes)
-        dir_hash.update(len(hash_bytes).to_bytes(4, 'big'))
-        dir_hash.update(hash_bytes)
+            # SECURITY: Verify resolved path stays within skill_dir
+            try:
+                resolved = f.resolve()
+                resolved.relative_to(skill_dir)
+            except ValueError:
+                continue
+
+            file_hash = compute_file_hash(f)
+            files.append(FileInfo(
+                relative_path=rel_path,
+                content_hash=file_hash,
+                file_size=f.stat().st_size,
+                mime_type=mime_type_from_path(f)
+            ))
+
+            # Use structured encoding to avoid hash collisions:
+            # length-prefixed rel_path followed by length-prefixed file_hash
+            rel_bytes = rel_path.encode('utf-8')
+            hash_bytes = file_hash.encode('ascii')
+            dir_hash.update(len(rel_bytes).to_bytes(4, 'big'))
+            dir_hash.update(rel_bytes)
+            dir_hash.update(len(hash_bytes).to_bytes(4, 'big'))
+            dir_hash.update(hash_bytes)
+
+    # Sort files for consistent ordering
+    files.sort(key=lambda f: f.relative_path)
 
     # Build file tree string for LLM context
     file_tree_lines = [f"  {f.relative_path} ({f.file_size} bytes, {f.mime_type})"
