@@ -25,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Tests
 
-- 32 new tests for loader module (50 total new tests passing)
+- 32 new tests for loader module (50 total tests now passing)
 
 ## [0.9.1] - 2026-03-23
 

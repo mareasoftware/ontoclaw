@@ -322,8 +322,9 @@ def _check_workflow_cycles(g: Graph) -> list[LintIssue]:
 # ─── Phase 1 Source Linting ────────────────────────────────────────────────────
 
 
-# First-person pronouns to detect in descriptions
-FIRST_PERSON_PATTERNS = [
+# Non-third-person language patterns to detect in descriptions
+# Includes first-person (I, me, my, we, our) and second-person (You, Your)
+NON_THIRD_PERSON_PATTERNS = [
     r'\bI\b',           # "I can help"
     r'\bI\'m\b',        # "I'm able to"
     r'\bI\'ll\b',       # "I'll process"
@@ -382,7 +383,7 @@ def _check_third_person(description: str, skill_id: str) -> list[LintIssue]:
     issues: list[LintIssue] = []
     matches_found: list[str] = []
 
-    for pattern in FIRST_PERSON_PATTERNS:
+    for pattern in NON_THIRD_PERSON_PATTERNS:
         if re.search(pattern, description, re.IGNORECASE):
             # Extract the matched text for context
             match = re.search(pattern, description, re.IGNORECASE)
@@ -394,7 +395,7 @@ def _check_third_person(description: str, skill_id: str) -> list[LintIssue]:
             severity="warning",
             code="third-person",
             skill_id=skill_id,
-            message=f"Description contains first-person language: {', '.join(set(matches_found))}",
+            message=f"Description contains non-third-person language: {', '.join(set(matches_found))}",
             detail="Use third person (e.g., 'Processes files' instead of 'I process files'). "
                    "Descriptions are injected into the system prompt.",
         ))
@@ -438,10 +439,13 @@ def _check_skill_md_length(content: str, skill_id: str) -> list[LintIssue]:
 
 def _check_reference_depth(files: list, skill_id: str) -> list[LintIssue]:
     """
-    Check if reference files are more than one level deep.
+    Check if reference files (markdown) are more than one level deep.
 
     Anthropic best practice: keep references one level deep from SKILL.md
     to ensure Claude reads complete files when needed.
+
+    Note: This only checks markdown files, as they are the typical reference format.
+    Scripts and assets may legitimately be in deeper subdirectories.
     """
     issues: list[LintIssue] = []
 
@@ -449,6 +453,10 @@ def _check_reference_depth(files: list, skill_id: str) -> list[LintIssue]:
         rel_path = file_info.relative_path
         # Skip SKILL.md itself
         if rel_path == "SKILL.md":
+            continue
+
+        # Only check markdown files (reference files)
+        if not rel_path.endswith('.md'):
             continue
 
         # Count directory depth (number of path separators)
@@ -459,7 +467,7 @@ def _check_reference_depth(files: list, skill_id: str) -> list[LintIssue]:
                 severity="info",
                 code="reference-depth",
                 skill_id=skill_id,
-                message=f"File '{rel_path}' is {depth} levels deep (recommended: 1)",
+                message=f"Reference file '{rel_path}' is {depth} levels deep (recommended: 1)",
                 detail="Deep references may be partially read. Consider flattening structure.",
             ))
 

@@ -304,7 +304,12 @@ description: Security test.
             assert not f.relative_path.startswith("/")
 
     def test_backslash_in_path_rejected(self, tmp_path):
-        """Backslashes in paths are rejected (Windows-style traversal)."""
+        """Backslashes in paths are rejected (Windows-style traversal / cross-platform safety).
+
+        On Unix, backslash is a valid filename character. This test verifies
+        that such files are excluded to prevent issues on Windows systems
+        and cross-platform path confusion.
+        """
         skill_dir = tmp_path / "skills" / "backslash-test"
         skill_dir.mkdir(parents=True)
 
@@ -315,11 +320,27 @@ description: Security test.
 ---
 """, encoding="utf-8")
 
+        # Create a file with a backslash in the name (valid on POSIX)
+        # This simulates a potential cross-platform issue
+        try:
+            backslash_file = skill_dir / "subdir\\file.md"
+            backslash_file.parent.mkdir(parents=True, exist_ok=True)
+            backslash_file.write_text("content", encoding="utf-8")
+            created_backslash_file = True
+        except (OSError, ValueError):
+            # Some filesystems may not allow backslashes in names
+            created_backslash_file = False
+
         result = scan_skill_directory(skill_dir)
 
-        # No file should have backslashes
+        # No file should have backslashes in relative_path
         for f in result.files:
-            assert "\\" not in f.relative_path
+            assert "\\" not in f.relative_path, f"Backslash found in: {f.relative_path}"
+
+        # If we created a backslash file, verify it was excluded
+        if created_backslash_file:
+            relative_paths = [f.relative_path for f in result.files]
+            assert "subdir\\file.md" not in relative_paths
 
     def test_hidden_files_ignored(self, tmp_path):
         """Hidden files (dotfiles) are not included in scan."""

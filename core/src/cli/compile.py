@@ -200,7 +200,7 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     # Build skill_parent_map for Rule A using frontmatter names (not directory names)
     # This ensures parent/child IDs remain consistent
     # Also cache DirectoryScan results to avoid double scanning
-    skill_parent_map = {}  # skill_dir -> (parent_skill_id, package_id)
+    skill_parent_map = {}  # skill_dir -> (qualified_parent_id, package_id)
     dir_scan_cache = {}  # skill_dir -> DirectoryScan (cached from first pass)
     for skill_file in skill_md_files:
         skill_dir = skill_file.parent
