@@ -315,8 +315,11 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
         # Get parent context
         parent_qualified_id, package_id = skill_parent_map.get(skill_dir, ("local/unknown", "local"))
 
+        # Extract parent local ID from qualified ID (uses frontmatter name, not directory name)
+        # Format: {package_id}/{skill_id}
+        parent_local_id = parent_qualified_id.split('/')[-1] if '/' in parent_qualified_id else parent_qualified_id
+
         # Generate IDs: short ID from filename, qualified ID from full path
-        parent_local_id = generate_skill_id(skill_dir.name)
         sub_skill_short_id = generate_skill_id(md_file.stem)  # Normalized/slugified
         sub_skill_qualified_id = generate_sub_skill_id(package_id, parent_local_id, md_file.name)
         sub_skill_hash = compute_sub_skill_hash(md_file)
