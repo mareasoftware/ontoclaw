@@ -147,6 +147,10 @@ def scan_skill_directory(skill_dir: Path, package_id: str | None = None) -> Dire
     Raises:
         LoaderError: If SKILL.md missing or frontmatter invalid
     """
+    # Reject symlinked skill directories to avoid scanning arbitrary filesystem paths
+    if skill_dir.is_symlink():
+        raise LoaderError(f"Skill directory cannot be a symlink: {skill_dir}")
+
     skill_dir = skill_dir.resolve()
     skill_md = skill_dir / 'SKILL.md'
 
