@@ -184,7 +184,7 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
             # Exclude reference/** paths - these are progressive disclosure docs, not sub-skills
             # They're already scanned in Phase 1 for hashing/metadata
             rel_path = file_path.relative_to(input_path)
-            if rel_path.parts[0] == "reference":
+            if "reference" in rel_path.parts:
                 asset_files.append(file_path)  # Treat as asset, not sub-skill
             else:
                 auxiliary_md_files.append(file_path)
