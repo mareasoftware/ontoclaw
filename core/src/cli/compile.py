@@ -236,9 +236,10 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
             package_id = resolve_package_id(skill_dir)
             qualified_parent_id = generate_qualified_skill_id(package_id, skill_id)
             skill_parent_map[skill_dir] = (qualified_parent_id, package_id)
-        except LoaderError:
+        except LoaderError as e:
             # Phase 1 scan failed; do not add to skill_parent_map
             # so this directory cannot be selected as a parent during inheritance inference
+            console.print(f"[red]Phase 1 scan failed while building parent map for {skill_dir.name}: {e}[/red]")
             continue
 
     for skill_file in skill_md_files:
@@ -256,8 +257,12 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
         # Use Phase 1 data for IDs and hash
         skill_id = dir_scan.skill_id
         skill_hash = dir_scan.content_hash
-        # Get package_id from pre-built map (consistent with parent map)
-        _, package_id = skill_parent_map.get(skill_dir, (skill_id, "local"))
+        # Derive package_id from dir_scan.qualified_id (format: package_id/skill_id)
+        # Fallback to resolve_package_id if qualified_id not available
+        if dir_scan.qualified_id and '/' in dir_scan.qualified_id:
+            package_id = dir_scan.qualified_id.split('/')[0]
+        else:
+            package_id = resolve_package_id(skill_dir)
 
         logger.info(f"Processing skill: {skill_id}")
 

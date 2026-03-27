@@ -21,7 +21,7 @@ Every skill is compiled with:
 | **Execution Payload** | `oc:hasPayload` | Optional code to execute |
 | **Provenance** | `oc:generatedBy` | Attestation (which LLM compiled it) |
 
-### v0.9.2+ Components
+### Components
 
 | Element | Property | Description |
 |----------|-----------|-------------|
