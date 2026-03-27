@@ -298,8 +298,6 @@ def serialize_skill(
                 if dep_node is not None:
                     graph.add((step_node, oc.stepDependsOn, dep_node))
                 else:
-                    import logging
-                    logger = logging.getLogger(__name__)
                     logger.warning(
                         "Unresolved workflow step dependency '%s' referenced from step '%s' "
                         "in workflow '%s'; dependency will not be serialized.",

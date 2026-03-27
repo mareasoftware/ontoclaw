@@ -174,14 +174,20 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
 
     # Categorize files by processing rule
     skill_md_files = []      # Rule A: SKILL.md → ontoskill.ttl
-    auxiliary_md_files = []  # Rule B: *.md → *.ttl
+    auxiliary_md_files = []  # Rule B: *.md → *.ttl (excluding reference docs)
     asset_files = []         # Rule C: direct copy
 
     for file_path in files_to_process:
         if file_path.name == "SKILL.md":
             skill_md_files.append(file_path)
         elif file_path.suffix == ".md":
-            auxiliary_md_files.append(file_path)
+            # Exclude reference/** paths - these are progressive disclosure docs, not sub-skills
+            # They're already scanned in Phase 1 for hashing/metadata
+            rel_path = file_path.relative_to(input_path)
+            if rel_path.parts[0] == "reference":
+                asset_files.append(file_path)  # Treat as asset, not sub-skill
+            else:
+                auxiliary_md_files.append(file_path)
         else:
             asset_files.append(file_path)
 

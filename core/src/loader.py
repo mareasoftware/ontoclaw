@@ -158,7 +158,13 @@ def scan_skill_directory(skill_dir: Path, package_id: str | None = None) -> Dire
     if not skill_md.exists():
         raise LoaderError(f"Skill directory missing SKILL.md: {skill_dir}")
 
-    content = skill_md.read_text(encoding='utf-8')
+    try:
+        content = skill_md.read_text(encoding='utf-8')
+    except (OSError, UnicodeDecodeError) as e:
+        # Wrap filesystem/decoding errors so callers that catch LoaderError
+        # can handle per-skill failures without crashing the whole compile
+        raise LoaderError(f"Failed to read SKILL.md at {skill_md}: {e}") from e
+
     frontmatter = parse_frontmatter(content)
 
     # Resolve package ID if not provided
