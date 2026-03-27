@@ -181,7 +181,11 @@ def scan_skill_directory(skill_dir: Path, package_id: str | None = None) -> Dire
 
     for root, dirs, filenames in os.walk(skill_dir, topdown=True, followlinks=False):
         # Prune excluded directories in-place (prevents descending into them)
-        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS and not d.startswith('.')]
+        # Also reject directories containing backslash (Windows path separator, but valid on POSIX)
+        dirs[:] = [d for d in dirs
+                   if d not in EXCLUDED_DIRS
+                   and not d.startswith('.')
+                   and '\\' not in d]
 
         for filename in filenames:
             # Skip hidden files
