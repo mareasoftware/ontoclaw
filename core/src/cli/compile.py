@@ -213,9 +213,12 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     for skill_dir, aux_files in skill_dirs_with_auxiliary.items():
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.exists():
-            error = OrphanSubSkillsError(str(skill_dir), aux_files)
-            console.print(f"[red]{error}[/red]")
-            raise error
+            # Auxiliary content directories (rules, examples, references, etc.)
+            # within a valid skill tree are not orphans — just support content.
+            logger.warning(
+                "Directory '%s' has auxiliary .md files %s but no SKILL.md — treating as support content",
+                skill_dir, aux_files,
+            )
 
     # Process Rule A: Core Skills (SKILL.md → ontoskill.ttl)
     compiled_skills = []
