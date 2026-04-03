@@ -71,6 +71,69 @@ oc:SkillShape
         sh:class oc:KnowledgeNode ;
         sh:message "impartsKnowledge deve puntare a un KnowledgeNode" ;
     ] ;
+
+    # New optional metadata properties (OntoCore refactoring)
+
+    sh:property [
+        sh:path oc:hasCategory ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "hasCategory, if present, must be a single string" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasVersion ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "hasVersion, if present, must be a single string" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasLicense ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "hasLicense, if present, must be a single string" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasVendor ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "hasVendor, if present, must be a single string" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasPackageName ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "hasPackageName, if present, must be a single string" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:isUserInvocable ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:message "isUserInvocable, if present, must be a boolean" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasArgumentHint ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "hasArgumentHint, if present, must be a single string" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasAllowedTool ;
+        sh:datatype xsd:string ;
+        sh:message "hasAllowedTool values must be strings" ;
+    ] ;
+
+    sh:property [
+        sh:path oc:hasAlias ;
+        sh:datatype xsd:string ;
+        sh:message "hasAlias values must be strings" ;
+    ] ;
     .
 
 # ============================================================================

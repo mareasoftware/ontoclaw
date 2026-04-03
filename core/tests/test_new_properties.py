@@ -62,3 +62,47 @@ class TestNewDatatypeProperties:
         assert str(range_val) == str(OC.Skill), (
             f"oc:dependsOnSkill range should be oc:Skill, got {range_val}"
         )
+
+
+class TestNewShaclShapes:
+    """Verify SHACL shapes exist for all new properties."""
+
+    @pytest.fixture
+    def shacl_graph(self):
+        g = Graph()
+        g.parse("core/specs/ontoskills.shacl.ttl", format="turtle")
+        return g
+
+    NEW_PROPERTIES = [
+        "hasCategory", "hasVersion", "hasLicense", "hasVendor",
+        "hasPackageName", "hasArgumentHint", "hasAllowedTool", "hasAlias",
+    ]
+
+    def test_skill_shape_has_optional_properties(self, shacl_graph):
+        """SkillShape should have optional property shapes for all new string properties."""
+        SH = Namespace("http://www.w3.org/ns/shacl#")
+        skill_shape = OC.SkillShape
+        found_paths = set()
+        for _, _, shape_node in shacl_graph.triples((skill_shape, SH.property, None)):
+            path = shacl_graph.value(shape_node, SH.path)
+            if path is not None:
+                local_name = str(path).split("#")[-1]
+                found_paths.add(local_name)
+        for prop in self.NEW_PROPERTIES:
+            assert prop in found_paths, (
+                f"oc:{prop} not found in SkillShape property constraints"
+            )
+
+    def test_isUserInvocable_shape_is_boolean(self, shacl_graph):
+        """isUserInvocable SHACL shape should specify xsd:boolean datatype."""
+        SH = Namespace("http://www.w3.org/ns/shacl#")
+        skill_shape = OC.SkillShape
+        for _, _, shape_node in shacl_graph.triples((skill_shape, SH.property, None)):
+            path = shacl_graph.value(shape_node, SH.path)
+            if path is not None and str(path).endswith("isUserInvocable"):
+                datatype = shacl_graph.value(shape_node, SH.datatype)
+                assert str(datatype) == str(XSD.boolean), (
+                    f"isUserInvocable should have xsd:boolean datatype, got {datatype}"
+                )
+                return
+        pytest.fail("isUserInvocable property shape not found in SkillShape")
