@@ -106,6 +106,17 @@ class ExtractedSkill(BaseModel):
     provenance: str | None = None
     knowledge_nodes: list[KnowledgeNode] = Field(default_factory=list)
 
+    # New metadata fields (OntoCore refactoring)
+    category: str | None = None
+    version: str | None = None
+    license: str | None = None
+    vendor: str | None = None
+    package_name: str | None = None
+    is_user_invocable: bool = True
+    argument_hint: str | None = None
+    allowed_tools: list[str] = Field(default_factory=list)
+    aliases: list[str] = Field(default_factory=list)
+
     @field_validator('depends_on', 'extends', 'contradicts')
     @classmethod
     def validate_skill_relation_ids(cls, values: list[str]) -> list[str]:
@@ -127,6 +138,16 @@ class ExtractedSkill(BaseModel):
                 )
             normalized.append(candidate)
         return normalized
+
+    @field_validator('is_user_invocable', mode='before')
+    @classmethod
+    def coerce_is_user_invocable(cls, v: Any) -> bool:
+        """Coerce string values to boolean for TTL serialization correctness."""
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.lower() in ('true', 'yes', '1')
+        return bool(v)
 
     @model_validator(mode='before')
     @classmethod

@@ -106,3 +106,82 @@ class TestNewShaclShapes:
                 )
                 return
         pytest.fail("isUserInvocable property shape not found in SkillShape")
+
+
+class TestExtractedSkillNewFields:
+    """Verify ExtractedSkill accepts and validates new metadata fields."""
+
+    def test_new_fields_default_values(self):
+        """New fields should have sensible defaults."""
+        from compiler.schemas import ExtractedSkill
+
+        skill = ExtractedSkill(
+            id="test-skill",
+            hash="abc123",
+            nature="Test",
+            genus="Test",
+            differentia="testing",
+            intents=["test"],
+        )
+        assert skill.category is None
+        assert skill.version is None
+        assert skill.license is None
+        assert skill.vendor is None
+        assert skill.package_name is None
+        assert skill.is_user_invocable is True
+        assert skill.argument_hint is None
+        assert skill.allowed_tools == []
+        assert skill.aliases == []
+
+    def test_new_fields_accept_values(self):
+        """New fields should accept valid values."""
+        from compiler.schemas import ExtractedSkill
+
+        skill = ExtractedSkill(
+            id="test-skill",
+            hash="abc123",
+            nature="Automation",
+            genus="Tool",
+            differentia="for Jira",
+            intents=["automate jira"],
+            category="automation",
+            version="1.0.0",
+            license="MIT",
+            vendor="anthropics",
+            package_name="claude-plugins-official",
+            is_user_invocable=False,
+            argument_hint="issue-key",
+            allowed_tools=["Bash", "Read"],
+            aliases=["jira", "jira-automation"],
+        )
+        assert skill.category == "automation"
+        assert skill.version == "1.0.0"
+        assert skill.is_user_invocable is False
+        assert skill.allowed_tools == ["Bash", "Read"]
+        assert skill.aliases == ["jira", "jira-automation"]
+
+    def test_boolean_coercion_from_string(self):
+        """is_user_invocable must coerce string values to bool."""
+        from compiler.schemas import ExtractedSkill
+
+        skill = ExtractedSkill(
+            id="test-skill",
+            hash="abc123",
+            nature="Test",
+            genus="Test",
+            differentia="testing",
+            intents=["test"],
+            is_user_invocable="yes",
+        )
+        assert skill.is_user_invocable is True
+
+        skill2 = ExtractedSkill(
+            id="test-skill-2",
+            hash="def456",
+            nature="Test",
+            genus="Test",
+            differentia="testing",
+            intents=["test"],
+            is_user_invocable="false",
+        )
+        assert skill2.is_user_invocable is False
