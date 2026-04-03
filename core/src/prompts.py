@@ -167,6 +167,37 @@ Identify reference files from the directory structure that support progressive d
 
 Reference files are loaded only when needed, not at skill activation.
 
+## METADATA EXTRACTION (NEW FIELDS)
+
+When analyzing a skill, also extract these metadata fields from frontmatter or infer them from the content:
+
+### category (string, optional)
+Infer the skill category from its content. Common values:
+- "automation" — automates a tool/service (Jira, Slack, email)
+- "document" — creates/modifies documents (PDF, DOCX, PPTX)
+- "marketing" — marketing tasks (SEO, ads, content)
+- "finance" — financial analysis, modeling
+- "development" — software development tools
+- "research" — research, analysis, synthesis
+- "productivity" — general productivity workflows
+
+### is_user_invocable (boolean, default true)
+Determine if the skill is designed for direct user invocation.
+- Most skills are user-invocable (true)
+- Set to false if the skill is purely a dependency, internal helper, or sub-agent spec
+
+### allowed_tools (list of strings, optional)
+If the skill body mentions specific tools the agent should use (e.g., Bash, Read, Write, Edit, Glob, Grep),
+extract them as allowed_tools.
+
+### depends_on (list of strings, optional)
+If the skill body explicitly references other skills as prerequisites, extract their canonical IDs.
+Do NOT infer dependencies from general mentions — only explicit dependencies.
+
+### argument_hint (string, optional)
+If the skill expects a specific argument format (e.g., "query", "repo-url", "file-path"),
+extract it as argument_hint.
+
 ## EXECUTABLE SCRIPTS
 
 For scripts in `scripts/` or similar directories, identify:
