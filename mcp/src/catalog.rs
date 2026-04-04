@@ -320,7 +320,7 @@ impl Catalog {
         let base_uri =
             env::var("ONTOSKILLS_BASE_URI").unwrap_or_else(|_| DEFAULT_BASE_URI.to_string());
         let enabled_manifest = ontology_root.join("system").join("index.enabled.ttl");
-        let default_manifest = ontology_root.join("index.ttl");
+        let default_manifest = ontology_root.join("system").join("index.ttl");
 
         if enabled_manifest.exists() {
             let mut visited = HashSet::new();

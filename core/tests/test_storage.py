@@ -858,7 +858,6 @@ def test_system_files_constant():
     assert "core.ttl" in SYSTEM_FILES
     assert "index.ttl" in SYSTEM_FILES
     assert "index.enabled.ttl" in SYSTEM_FILES
-    assert "index.installed.ttl" in SYSTEM_FILES
     assert "registry.lock.json" in SYSTEM_FILES
     assert "registry.sources.json" in SYSTEM_FILES
-    assert len(SYSTEM_FILES) == 6
+    assert len(SYSTEM_FILES) == 5

@@ -49,11 +49,6 @@ def enabled_index_path(root: Path | None = None) -> Path:
     return system_dir(root) / "index.enabled.ttl"
 
 
-def installed_index_path(root: Path | None = None) -> Path:
-    """Get the path to the installed skills index."""
-    return system_dir(root) / "index.installed.ttl"
-
-
 def registry_lock_path(root: Path | None = None) -> Path:
     """Get the path to the registry lock file."""
     return system_dir(root) / "registry.lock.json"

@@ -89,7 +89,7 @@ def test_default_anthropic_model():
         with patch('compiler.env.load_local_env'):
             from compiler import config
 
-        assert config.ANTHROPIC_MODEL == 'claude-opus-4-6'
+        assert config.ANTHROPIC_MODEL == 'glm-5.1'
 
 
 def test_custom_anthropic_model():

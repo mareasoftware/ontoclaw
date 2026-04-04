@@ -32,7 +32,6 @@ from .paths import (
     skills_vendor_dir,
     ontology_vendor_dir,
     enabled_index_path,
-    installed_index_path,
     registry_lock_path,
     registry_sources_path,
     ensure_registry_layout,
@@ -51,7 +50,6 @@ from .state import (
 
 # Index
 from .index import (
-    iter_installed_skill_paths,
     iter_enabled_skill_paths,
     rebuild_registry_indexes,
     enable_skills,
@@ -103,7 +101,6 @@ __all__ = [
     "skills_vendor_dir",
     "ontology_vendor_dir",
     "enabled_index_path",
-    "installed_index_path",
     "registry_lock_path",
     "registry_sources_path",
     "ensure_registry_layout",
@@ -116,7 +113,6 @@ __all__ = [
     "discover_local_skill_paths",
     "sync_local_package",
     # Index
-    "iter_installed_skill_paths",
     "iter_enabled_skill_paths",
     "rebuild_registry_indexes",
     "enable_skills",

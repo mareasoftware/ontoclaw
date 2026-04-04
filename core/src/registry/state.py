@@ -22,7 +22,6 @@ from .models import (
 )
 from .paths import (
     enabled_index_path,
-    installed_index_path,
     ontology_root,
     registry_lock_path,
     registry_sources_path,
@@ -83,7 +82,7 @@ def discover_local_skill_paths(root: Path | None = None) -> list[Path]:
         base / "official",
         base / "community",
     }
-    system_files = {CORE_ONTOLOGY_FILENAME, "index.ttl", "index.enabled.ttl", "index.installed.ttl"}
+    system_files = {CORE_ONTOLOGY_FILENAME, "index.ttl", "index.enabled.ttl"}
     paths: list[Path] = []
     for path in base.rglob("*.ttl"):
         # Skip if in excluded directories

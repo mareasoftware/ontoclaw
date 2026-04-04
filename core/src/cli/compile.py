@@ -140,17 +140,6 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     ontology_root = output_path if output_dir != OUTPUT_DIR else resolve_ontology_root(output_path)
     ensure_registry_layout(ontology_root)
 
-    # Copy canonical core ontology from site if not already present
-    core_path = ontology_root / CORE_ONTOLOGY_FILENAME
-    if not core_path.exists():
-        canonical_core = Path(__file__).parent.parent.parent.parent / "site" / "public" / "ontology" / CORE_ONTOLOGY_FILENAME
-        if canonical_core.exists():
-            logger.info("Copying canonical core ontology from site/public/ontology/")
-            shutil.copy2(canonical_core, core_path)
-        else:
-            logger.info("Creating core ontology (no canonical found)...")
-            create_core_ontology(core_path)
-
     # Clean orphaned files before compilation
     orphans_removed = clean_orphaned_files(input_path, output_path, dry_run=dry_run)
     if orphans_removed > 0:
@@ -480,10 +469,10 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     # Collect all skill output paths for index (including sub-skills)
     all_skill_paths = list(output_path.rglob("*.ttl"))
     # Exclude system files
-    all_skill_paths = [p for p in all_skill_paths if p.name not in {CORE_ONTOLOGY_FILENAME, "index.ttl", "index.enabled.ttl", "index.installed.ttl"}]
+    all_skill_paths = [p for p in all_skill_paths if p.name not in {CORE_ONTOLOGY_FILENAME, "index.ttl", "index.enabled.ttl"}]
 
-    # Generate index manifest
-    index_path = ontology_root / "index.ttl"
+    # Generate index manifest in system/
+    index_path = ontology_root / "system" / "index.ttl"
     generate_index_manifest(all_skill_paths, index_path, ontology_root)
     rebuild_registry_indexes(ontology_root)
 

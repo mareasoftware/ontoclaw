@@ -305,11 +305,9 @@ fn discover_ontology_root() -> Option<PathBuf> {
 }
 
 fn has_ontology_data(path: &PathBuf) -> bool {
-    // Check for primary manifest files
-    path.join("index.ttl").exists()
-        || path.join("system").join("index.enabled.ttl").exists()
-        // Backward compatibility: check for root-level index.enabled.ttl
-        || path.join("index.enabled.ttl").exists()
+    // Check for manifest files in system/
+    path.join("system").join("index.enabled.ttl").exists()
+        || path.join("system").join("index.ttl").exists()
         // Also check for any .ttl files recursively as a fallback
         || contains_ttl_recursive(path, 3)
 }

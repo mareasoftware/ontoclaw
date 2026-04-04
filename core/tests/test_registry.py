@@ -87,8 +87,7 @@ def test_install_enable_disable_package_rebuilds_indexes(tmp_path):
     enabled = {skill.skill_id for skill in lock.packages["marea/office"].skills if skill.enabled}
     assert enabled == set()
 
-    installed_index, enabled_index = rebuild_registry_indexes(root)
-    assert installed_index.exists()
+    enabled_index = rebuild_registry_indexes(root)
     assert enabled_index.exists()
 
 

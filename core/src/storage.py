@@ -445,7 +445,6 @@ SYSTEM_FILES = {
     CORE_ONTOLOGY_FILENAME,
     "index.ttl",
     "index.enabled.ttl",
-    "index.installed.ttl",
     "registry.lock.json",
     "registry.sources.json",
 }
