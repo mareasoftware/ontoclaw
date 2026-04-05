@@ -10,6 +10,7 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 from rdflib import Graph, RDF
+from rdflib.namespace import DCTERMS
 
 from compiler.extractor import (
     generate_skill_id,
@@ -25,7 +26,8 @@ from compiler.serialization import serialize_skill_to_module
 from compiler.storage import (
     generate_index_manifest,
     clean_orphaned_files,
-    generate_registry_json,
+    generate_package_manifest,
+    generate_registry_index,
 )
 from compiler.registry import (
     ensure_registry_layout,
@@ -143,6 +145,110 @@ def _write_error_log(output_path: Path) -> None:
     logger.info(f"Wrote {len(_compile_errors)} error(s) to {error_file}")
 
 
+def _generate_manifests_from_disk(output_path: Path, ontology_root: Path) -> None:
+    """Generate package.json and index.json by scanning existing TTL files on disk.
+
+    This ensures manifests are always complete, even for skills that were
+    skipped by hash match during compilation. Reads skill metadata directly
+    from the compiled TTL files.
+    """
+    import re
+    from compiler.core_ontology import get_oc_namespace
+
+    oc = get_oc_namespace()
+    parent_skills = list(output_path.rglob("ontoskill.ttl"))
+    sub_skills = list(output_path.rglob("*.ttl"))
+    sub_skills = [t for t in sub_skills if t.name != "ontoskill.ttl"]
+
+    if not parent_skills:
+        return
+
+    vendor_name = output_path.name  # e.g., "anthropics"
+    packages_on_disk: dict[str, list[dict]] = {}
+
+    def _extract_skill_id(uri_str: str) -> str:
+        """Extract skill ID from a URI like https://ontoskills.sh/ontology#skill_pptx."""
+        if "#" in uri_str:
+            fragment = uri_str.rsplit("#", 1)[-1]
+            # Remove 'skill_' prefix if present
+            if fragment.startswith("skill_"):
+                fragment = fragment[6:]
+            return fragment.replace("_", "-")
+        return uri_str
+
+    for ttl_path in parent_skills:
+        rel = ttl_path.relative_to(output_path)
+        graph = Graph()
+        try:
+            graph.parse(ttl_path, format="turtle")
+        except Exception:
+            continue
+
+        for skill_uri in graph.subjects(RDF.type, oc.Skill):
+            skill_id = str(graph.value(skill_uri, DCTERMS.identifier) or "")
+            nature = str(graph.value(skill_uri, oc.nature) or "")
+            extends = [_extract_skill_id(str(o)) for o in graph.objects(skill_uri, oc.extends)]
+            depends = [_extract_skill_id(str(o)) for o in graph.objects(skill_uri, oc.dependsOnSkill)]
+
+            if not skill_id:
+                continue
+
+            # package_id = vendor/first_dir_segment (e.g., "anthropics/financial-services-plugin")
+            parts = rel.parts  # e.g., ("financial-services-plugin", "funding-digest", "ontoskill.ttl")
+            first_segment = parts[0] if parts else vendor_name
+            pkg_id = f"{vendor_name}/{first_segment}"
+
+            # Collect sub-skill modules under this skill's directory
+            skill_dir = ttl_path.parent
+            modules = [str(rel)]
+            for sub_ttl in sub_skills:
+                # Sub-skills live in the same skill dir or nested under it
+                try:
+                    sub_rel = sub_ttl.relative_to(skill_dir)
+                    modules.append(str(rel.parent / sub_rel))
+                except ValueError:
+                    pass
+
+            if pkg_id not in packages_on_disk:
+                packages_on_disk[pkg_id] = []
+            packages_on_disk[pkg_id].append({
+                "skill_id": skill_id,
+                "path": str(rel),
+                "nature": nature[:200],
+                "aliases": [],
+                "depends_on_skills": extends + depends,
+                "default_enabled": True,
+                "generated_by": "",
+                "generated_at": "",
+                "modules": sorted(set(modules)),
+            })
+
+    # Generate per-package package.json
+    for pkg_id, skills in packages_on_disk.items():
+        generate_package_manifest(
+            package_id=pkg_id,
+            compiled_skills=skills,
+            output_dir=output_path,
+        )
+
+    # Generate/update root index.json
+    if packages_on_disk:
+        registry_packages = []
+        for pkg_id in packages_on_disk:
+            try:
+                rel_manifest = output_path.relative_to(ontology_root)
+                manifest_url = f"./{rel_manifest}/package.json"
+            except ValueError:
+                manifest_url = f"./{output_path.name}/package.json"
+            registry_packages.append({
+                "package_id": pkg_id,
+                "manifest_url": manifest_url,
+                "trust_tier": "community",
+                "source_kind": "ontology",
+            })
+        generate_registry_index(registry_packages, ontology_root / "index.json")
+
+
 MAX_EXTRACTION_RETRIES = 3
 
 
@@ -176,6 +282,22 @@ def retry_extraction(extract_fn, skill_id: str, *args, **kwargs):
                 )
     raise last_error
 
+def _discover_vendor_dirs(input_path: Path) -> list[Path]:
+    """Discover vendor subdirectories under a skills root.
+
+    Each first-level subdirectory that contains SKILL.md files
+    (at any depth) is treated as a separate vendor.
+    """
+    if not input_path.is_dir():
+        return []
+    vendor_dirs = []
+    for child in sorted(input_path.iterdir()):
+        if child.is_dir() and not child.name.startswith('.'):
+            if any(child.rglob("SKILL.md")):
+                vendor_dirs.append(child)
+    return vendor_dirs
+
+
 @click.command()
 @click.argument('skill_name', required=False)
 @click.option('-i', '--input', 'input_dir', default=SKILLS_DIR,
@@ -189,12 +311,17 @@ def retry_extraction(extract_fn, skill_id: str, *args, **kwargs):
 @click.option('-y', '--yes', is_flag=True, help='Skip confirmation prompt')
 @click.option('-v', '--verbose', is_flag=True, help='Enable debug logging')
 @click.option('-q', '--quiet', is_flag=True, help='Suppress progress output')
+@click.option('--batch', is_flag=True,
+              help='Treat input as a root of vendor directories; compile each subdirectory as a separate vendor')
+@click.option('--ontology-root', '_ontology_root', default=None, hidden=True,
+              help='Override ontology root for system/ files (used internally by --batch)')
 @click.pass_context
-def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, force, yes, verbose, quiet):
+def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, force, yes, verbose, quiet, batch, _ontology_root):
     """Compile skills into modular ontology with perfect mirroring.
 
     Without SKILL_NAME: Compile all files in input directory.
     With SKILL_NAME: Compile specific skill directory.
+    With --batch: Auto-discover vendor subdirectories and compile each one.
 
     File Processing Rules:
       - SKILL.md → ontoskill.ttl (LLM compilation)
@@ -215,7 +342,50 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
 
     input_path = Path(input_dir)
     output_path = Path(output_dir)
-    ontology_root = output_path if output_dir != OUTPUT_DIR else resolve_ontology_root(output_path)
+
+    # Batch mode: discover vendor subdirectories and compile each one
+    if batch:
+        vendor_dirs = _discover_vendor_dirs(input_path)
+        if not vendor_dirs:
+            console.print(f"[yellow]No vendor directories with skills found in {input_path}[/yellow]")
+            return
+        # system/ lives at the same level as packages/ (sibling, not inside)
+        batch_ontology_root = output_path.parent
+        ensure_registry_layout(batch_ontology_root)
+
+        total = len(vendor_dirs)
+        console.print(f"[bold]Discovered {total} vendor(s) in {input_path}[/bold]")
+        for i, vendor_dir in enumerate(vendor_dirs, 1):
+            console.print(f"\n[bold cyan][{i}/{total}] Compiling {vendor_dir.name}[/bold cyan]")
+            try:
+                # Namespace each vendor under its name to avoid collisions
+                vendor_output = output_path / vendor_dir.name
+                ctx.invoke(
+                    compile_cmd,
+                    skill_name=None,
+                    input_dir=str(vendor_dir),
+                    output_dir=str(vendor_output),
+                    dry_run=dry_run,
+                    skip_security=skip_security,
+                    force=force,
+                    yes=True,  # auto-confirm for batch
+                    verbose=verbose,
+                    quiet=quiet,
+                    batch=False,  # don't recurse
+                    _ontology_root=str(batch_ontology_root),
+                )
+            except Exception as e:
+                console.print(f"[red]Failed {vendor_dir.name}: {e}[/red]")
+                _record_error(vendor_dir.name, str(e), "batch")
+        # Rebuild global indexes spanning all vendors
+        all_skill_paths = list(output_path.rglob("ontoskill.ttl"))
+        index_path = batch_ontology_root / "system" / "index.ttl"
+        generate_index_manifest(all_skill_paths, index_path, batch_ontology_root)
+        rebuild_registry_indexes(batch_ontology_root)
+        _write_error_log(output_path)
+        return
+
+    ontology_root = Path(_ontology_root) if _ontology_root else (output_path.parent if output_dir != OUTPUT_DIR else resolve_ontology_root(output_path))
     ensure_registry_layout(ontology_root)
 
     # Clean orphaned files before compilation
@@ -297,7 +467,6 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     sub_skills_serialized = 0
     assets_copied = 0
     compiled_skills = []  # Track extracted skills for summary display
-    _registry_entries = []  # Per-skill metadata for index.json
 
     # Build skill_parent_map for Rule A using frontmatter names (not directory names)
     # This ensures parent/child IDs remain consistent
@@ -399,15 +568,6 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
                         qualified_id=qualified_id
                     )
                     skills_serialized += 1
-                    # Track for registry index.json
-                    rel_skill_path = output_skill_path.relative_to(output_path)
-                    _registry_entries.append({
-                        "skill_id": compiled.id,
-                        "package_id": package_id,
-                        "manifest_url": f"./{rel_skill_path}",
-                        "generated_by": ANTHROPIC_MODEL,
-                        "generated_at": datetime.now().isoformat(),
-                    })
                 except OntologyValidationError as e:
                     console.print(f"[red]Validation failed for {skill.id}: {e}[/red]")
                     _record_error(skill_id, e, "validation")
@@ -557,18 +717,19 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     # Collect only parent skill output paths for index (ontoskill.ttl = parent, *.ttl = sub-skill)
     all_skill_paths = list(output_path.rglob("ontoskill.ttl"))
 
-    # Generate index manifest in system/
-    index_path = ontology_root / "system" / "index.ttl"
-    generate_index_manifest(all_skill_paths, index_path, ontology_root)
-    rebuild_registry_indexes(ontology_root)
+    # Skip per-vendor system files when invoked from batch (batch generates global ones)
+    if not _ontology_root:
+        # Generate index manifest in system/
+        index_path = ontology_root / "system" / "index.ttl"
+        generate_index_manifest(all_skill_paths, index_path, ontology_root)
+        rebuild_registry_indexes(ontology_root)
 
     # Flush error log to output directory
     _write_error_log(output_path)
 
-    # Generate registry index.json
-    if _registry_entries:
-        registry_path = ontology_root / "system" / "index.json"
-        generate_registry_json(_registry_entries, registry_path, output_path)
+    # Generate per-package manifest (package.json) by scanning disk
+    # This ensures manifests are always up-to-date even for skills skipped by hash match
+    _generate_manifests_from_disk(output_path, ontology_root)
 
     # Summary output
     summary_parts = []

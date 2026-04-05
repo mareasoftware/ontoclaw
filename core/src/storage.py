@@ -21,7 +21,7 @@ from rdflib.namespace import DCTERMS, SKOS, PROV
 
 from compiler.schemas import ExtractedSkill
 from compiler.exceptions import OntologyLoadError, OntologyValidationError
-from compiler.config import BASE_URI, CORE_ONTOLOGY_FILENAME, CORE_ONTOLOGY_URL, SKILLS_DIR, OUTPUT_DIR, resolve_ontology_root
+from compiler.config import BASE_URI, COMPILER_VERSION, CORE_ONTOLOGY_FILENAME, CORE_ONTOLOGY_URL, SKILLS_DIR, OUTPUT_DIR, resolve_ontology_root
 from compiler.core_ontology import get_oc_namespace
 from compiler.serialization import serialize_skill
 from compiler.validator import validate_and_raise
@@ -520,68 +520,103 @@ def clean_orphaned_files(
     return orphans_removed
 
 
-def generate_registry_json(
+def generate_package_manifest(
+    package_id: str,
     compiled_skills: list[dict],
-    index_path: Path,
-    output_root: Path,
+    output_dir: Path,
+    trust_tier: str = "community",
 ) -> None:
-    """Generate or update system/index.json with per-skill registry metadata.
+    """Generate a per-package package.json manifest.
 
-    Implements merge/upsert logic:
-    - Existing packages are updated by package_id
-    - Existing skills within a package are updated by skill_id
-    - New packages and skills are appended
+    Produces a manifest compatible with the remote registry format,
+    listing all compiled skills with metadata, dependencies, and paths.
 
     Args:
+        package_id: Qualified package ID (e.g., "anthropics/financial-services-plugin")
         compiled_skills: List of dicts with keys:
-            skill_id, package_id, manifest_url, generated_by, generated_at
-        index_path: Path to system/index.json
-        output_root: Root output directory for relative manifest_url computation
+            skill_id, nature, modules, aliases, depends_on_skills, default_enabled
+        output_dir: The vendor output directory (e.g., ontostore/packages/anthropics/)
+        trust_tier: Trust tier for the package
     """
     import json
 
-    registry: dict = {"version": 1, "packages": []}
+    modules = set()
+    skills = []
+    for entry in compiled_skills:
+        rel_path = entry.get("path", f"{entry['skill_id']}/ontoskill.ttl")
+        skills.append({
+            "id": entry["skill_id"],
+            "path": rel_path,
+            "default_enabled": entry.get("default_enabled", True),
+            "aliases": entry.get("aliases", []),
+            "description": entry.get("nature", ""),
+            "depends_on_skills": entry.get("depends_on_skills", []),
+            "generated_by": entry.get("generated_by", ""),
+            "generated_at": entry.get("generated_at", ""),
+        })
+        modules.add(rel_path)
+        # Also add sub-skill modules if tracked
+        for mod in entry.get("modules", []):
+            modules.add(mod)
+
+    manifest = {
+        "package_id": package_id,
+        "version": COMPILER_VERSION,
+        "trust_tier": trust_tier,
+        "source_kind": "ontology",
+        "modules": sorted(modules),
+        "skills": skills,
+    }
+
+    manifest_path = output_dir / "package.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    logger.info(f"Generated package manifest for {package_id} with {len(skills)} skill(s) at {manifest_path}")
+
+
+def generate_registry_index(
+    packages: list[dict],
+    index_path: Path,
+) -> None:
+    """Generate the root index.json listing all packages with manifest pointers.
+
+    Implements merge/upsert:
+    - Existing packages are updated by package_id
+    - New packages are appended
+    - Removed packages are preserved (not deleted)
+
+    Args:
+        packages: List of dicts with keys:
+            package_id, manifest_url, trust_tier, source_kind
+        index_path: Path to root index.json
+    """
+    import json
+
+    registry: dict = {"packages": []}
     if index_path.exists():
         try:
             registry = json.loads(index_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             pass
 
-    packages: list[dict] = registry.get("packages", [])
-    pkg_index: dict[str, dict] = {p["package_id"]: p for p in packages}
+    existing: dict[str, dict] = {p["package_id"]: p for p in registry.get("packages", [])}
 
-    for skill_entry in compiled_skills:
-        pkg_id = skill_entry["package_id"]
-
-        if pkg_id not in pkg_index:
-            pkg_index[pkg_id] = {
-                "package_id": pkg_id,
-                "trust_tier": "community",
-                "source_kind": "ontology",
-                "skills": [],
-            }
-            packages.append(pkg_index[pkg_id])
-
-        pkg = pkg_index[pkg_id]
-        existing_skills = {s["skill_id"]: s for s in pkg["skills"]}
-
-        skill_data = {
-            "skill_id": skill_entry["skill_id"],
-            "manifest_url": skill_entry["manifest_url"],
-            "generated_by": skill_entry["generated_by"],
-            "generated_at": skill_entry["generated_at"],
+    for pkg_entry in packages:
+        pkg_data = {
+            "package_id": pkg_entry["package_id"],
+            "manifest_url": pkg_entry["manifest_url"],
+            "trust_tier": pkg_entry.get("trust_tier", "community"),
+            "source_kind": pkg_entry.get("source_kind", "ontology"),
         }
+        existing[pkg_entry["package_id"]] = pkg_data
 
-        if skill_entry["skill_id"] in existing_skills:
-            existing_skills[skill_entry["skill_id"]].update(skill_data)
-        else:
-            pkg["skills"].append(skill_data)
-
-    registry["packages"] = packages
+    registry["packages"] = list(existing.values())
 
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(
         json.dumps(registry, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    logger.info(f"Updated registry index with {len(compiled_skills)} skill(s) at {index_path}")
+    logger.info(f"Updated registry index with {len(registry['packages'])} package(s) at {index_path}")

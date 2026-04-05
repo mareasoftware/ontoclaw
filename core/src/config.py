@@ -11,6 +11,9 @@ from compiler.env import load_local_env
 
 load_local_env()
 
+# Compiler version (must match pyproject.toml)
+COMPILER_VERSION = "0.10.0"
+
 
 # Project root (parent of core/ directory where this file lives)
 # Now we're in src/, so we need to go up two levels to get to core/, then one more to project root
