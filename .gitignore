@@ -10,6 +10,7 @@ mcp/target/
 .env
 *.egg-info/
 __pycache__
+docs
 
 # ONNX test fixtures (large files)
 mcp/tests/fixtures/
