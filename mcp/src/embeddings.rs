@@ -53,20 +53,20 @@ fn quality_multiplier(trust_tier: &str) -> f32 {
     }
 }
 
-/// Maximum query length in characters before safety truncation.
+/// Maximum query length in bytes before safety truncation.
 /// Defensive limit to prevent crashes from extremely long LLM-generated queries.
 /// The ONNX tokenizer handles its own token-level truncation, but this prevents
 /// pathological inputs from consuming excessive memory.
-const MAX_QUERY_CHARS: usize = 512;
+const MAX_QUERY_BYTES: usize = 512;
 
-/// Truncate query to a safe maximum length.
+/// Truncate query to a safe maximum byte length.
 /// Trusts the LLM to provide concise, targeted queries — this is purely defensive.
 fn safety_truncate(query: &str) -> &str {
-    if query.len() <= MAX_QUERY_CHARS {
+    if query.len() <= MAX_QUERY_BYTES {
         return query;
     }
     // Find a safe char boundary to avoid panicking on multi-byte UTF-8
-    let mut end = MAX_QUERY_CHARS;
+    let mut end = MAX_QUERY_BYTES;
     while end > 0 && !query.is_char_boundary(end) {
         end -= 1;
     }

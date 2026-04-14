@@ -24,7 +24,6 @@ const REGISTRY_SOURCES_PATH = path.join(STATE_DIR, "registry.sources.json");
 const REGISTRY_LOCK_PATH = path.join(STATE_DIR, "registry.lock.json");
 const RELEASE_LOCK_PATH = path.join(STATE_DIR, "release.lock.json");
 const CONFIG_PATH = path.join(STATE_DIR, "config.json");
-const INSTALLED_INDEX_PATH = path.join(ONTOLOGY_DIR, "index.installed.ttl");
 const ENABLED_INDEX_PATH = path.join(SYSTEM_DIR, "index.enabled.ttl");
 const CORE_ONTOLOGY_PATH = path.join(ONTOLOGY_DIR, "core.ttl");
 const CORE_ONTOLOGY_URL = "https://ontoskills.sh/ontology/core.ttl";
@@ -153,7 +152,6 @@ module.exports = {
   REGISTRY_LOCK_PATH,
   RELEASE_LOCK_PATH,
   CONFIG_PATH,
-  INSTALLED_INDEX_PATH,
   ENABLED_INDEX_PATH,
   CORE_ONTOLOGY_PATH,
   CORE_ONTOLOGY_URL,

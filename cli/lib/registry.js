@@ -8,7 +8,6 @@ const {
   RELEASE_LOCK_PATH,
   CONFIG_PATH,
   ENABLED_INDEX_PATH,
-  INSTALLED_INDEX_PATH,
   ONTOLOGY_DIR,
   ONTOLOGY_VENDOR_DIR,
   EMBEDDINGS_DIR,
@@ -163,7 +162,6 @@ async function rebuildIndexes() {
     }
   }
 
-  await fsp.writeFile(INSTALLED_INDEX_PATH, ttlImports([...installed].sort()), "utf-8");
   await fsp.writeFile(ENABLED_INDEX_PATH, ttlImports([...enabled].sort()), "utf-8");
   await saveRegistryLock(lock);
 }
