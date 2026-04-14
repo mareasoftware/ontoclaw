@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Version aligned** — OntoMCP 0.11.0 matches OntoCore 0.11.0
 - **`dependsOnSkill` in JS** — `extractSkillInfo()` regex updated to match `oc:dependsOnSkill`
 - **JS install fix** — `installSkill()` now correctly parses `author/package/skill` refs (was splitting at first `/`)
+- **vendor→author rename** — Catalog path resolution uses `ontologies/author/` (was `ontologies/vendor/`). E2E test updated. Hybrid scoring table uses "author skills" terminology
 
 ## [0.9.1] - 2026-03-24
 

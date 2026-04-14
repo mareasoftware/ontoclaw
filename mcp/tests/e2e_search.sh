@@ -29,7 +29,7 @@ ok "ontomcp binary built"
 step "Creating compiled skill artifacts..."
 
 ONTOLOGY_ROOT="$SANDBOX/ontology-root"
-VENDOR_DIR="$ONTOLOGY_ROOT/vendor/test-vendor/calc-skill"
+VENDOR_DIR="$ONTOLOGY_ROOT/author/test-author/calc-skill"
 EMBEDDINGS_DIR="$ONTOLOGY_ROOT/system/embeddings"
 SYSTEM_DIR="$ONTOLOGY_ROOT/system"
 mkdir -p "$VENDOR_DIR" "$EMBEDDINGS_DIR" "$SYSTEM_DIR"
@@ -89,7 +89,7 @@ const path = require('path');
 const fsp = require('fs/promises');
 
 const EMBEDDINGS_DIR = '$EMBEDDINGS_DIR';
-const VENDOR_DIR = '$ONTOLOGY_ROOT/vendor';
+const VENDOR_DIR = '$ONTOLOGY_ROOT/author';
 
 async function walkForIntentsJson(dir) {
   let results = [];
@@ -185,7 +185,7 @@ ok "ONNX model + tokenizer exported"
 cat > "$SYSTEM_DIR/index.enabled.ttl" <<'TTL'
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 <https://ontoskills.sh/ontology#index> a owl:Ontology ;
-    owl:imports <file://vendor/test-vendor/calc-skill/ontoskill.ttl> .
+    owl:imports <file://author/test-author/calc-skill/ontoskill.ttl> .
 TTL
 
 # ── Step 4: Search via MCP binary (JSON-RPC) ─────────────────────────

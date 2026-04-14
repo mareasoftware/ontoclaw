@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Per-skill embedding generation** — Every compiled skill produces `intents.json` with 384-dim L2-normalized embeddings alongside `ontoskill.ttl`. Compilation fails if `sentence-transformers` is missing or a skill has zero declared intents
 - **`oc:dependsOnSkill`** — New ObjectProperty replacing `oc:dependsOn` for unambiguous skill-to-skill dependencies (domain/range `oc:Skill`)
-- **9 optional metadata properties** — `category`, `version`, `license`, `vendor`, `package_name`, `is_user_invocable`, `argument_hint`, `allowed_tools`, `aliases` in ontology, SHACL shapes, Pydantic models, and serialization
+- **9 optional metadata properties** — `category`, `version`, `license`, `author`, `package_name`, `is_user_invocable`, `argument_hint`, `allowed_tools`, `aliases` in ontology, SHACL shapes, Pydantic models, and serialization
 - **Multi-level install resolution** — `ontoskills install` supports author-level, package-level, and skill-level references via `resolve_install_ref()`
 - **Parallel compile workers** — Configurable retry mechanism and parallel LLM extraction workers
 - **Direct content injection** — Skip tool-use discovery phase, inject content directly to LLM
@@ -20,9 +20,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **`generatedBy` made optional** — No longer required by SHACL validation; auto-filled when present
-- **Serialization cleanup** — Stopped writing `version`/`license`/`vendor` to TTL (belongs in `package.json` manifest)
+- **Serialization cleanup** — Stopped writing `version`/`license`/`author` to TTL (belongs in `package.json` manifest)
 - **CLI restructure** — Renamed `bin/` to `cli/`, consolidated JS tests into `cli/tests/`, removed root `tests/` directory
 - **Install single skill** — Remote module download via HTTP for single-skill installs from remote registries
+- **Global vendor→author rename** — Directory paths (`ontologies/vendor/` → `ontologies/author/`), variables, functions (`install_vendor` → `install_author`), types (`VendorTarget` → `AuthorTarget`), ontology property (`hasVendor` → `hasAuthor`), and all documentation
+- **Smart install resolution** — Single-segment targets resolve as author prefix match or short-name package match, with ambiguity disambiguation
 
 ### Fixed
 

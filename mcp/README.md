@@ -109,7 +109,7 @@ Search results use **hybrid scoring** — cosine similarity multiplied by a trus
 | Trust Tier | Multiplier | Effect |
 |------------|------------|--------|
 | `local` | 1.2 | Boosts locally compiled skills |
-| `trusted` | 1.2 | Boosts official/trusted vendor skills |
+| `trusted` | 1.2 | Boosts official/trusted author skills |
 | `verified` | 1.0 | Neutral (baseline) |
 | `community` | 0.8 | Dampens community contributions |
 
