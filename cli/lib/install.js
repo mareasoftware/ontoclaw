@@ -166,13 +166,19 @@ function resolveChildRefForInstall(baseRef, childPath) {
 
 async function enableSkill(qualifiedId, enabled) {
   let packageId, skillId;
-  if (!qualifiedId.includes("/")) {
+  const segments = qualifiedId.split("/");
+  if (segments.length === 1) {
     packageId = "local";
-    skillId = qualifiedId;
-  } else {
-    const segments = qualifiedId.split("/");
+    skillId = segments[0];
+  } else if (segments[0] === "local") {
+    packageId = "local";
+    skillId = segments.slice(1).join("/");
+  } else if (segments.length >= 3) {
     packageId = segments.slice(0, 2).join("/");
     skillId = segments.slice(2).join("/");
+  } else {
+    packageId = segments[0];
+    skillId = segments[1];
   }
   const lock = await loadRegistryLock();
   const pkg = lock.packages[packageId];
@@ -209,8 +215,17 @@ async function removeInstalled(target) {
   const lock = await loadRegistryLock();
   if (target.includes("/")) {
     const segments = target.split("/");
-    const packageId = segments.slice(0, 2).join("/");
-    const skillId = segments.slice(2).join("/");
+    let packageId, skillId;
+    if (segments[0] === "local") {
+      packageId = "local";
+      skillId = segments.slice(1).join("/");
+    } else if (segments.length >= 3) {
+      packageId = segments.slice(0, 2).join("/");
+      skillId = segments.slice(2).join("/");
+    } else {
+      packageId = segments[0];
+      skillId = segments[1];
+    }
     const pkg = lock.packages[packageId];
     if (!pkg) {
       fail(`Package not installed: ${packageId}`);
