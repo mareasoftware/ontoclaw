@@ -95,10 +95,10 @@ oc:SkillShape
     ] ;
 
     sh:property [
-        sh:path oc:hasVendor ;
+        sh:path oc:hasAuthor ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
-        sh:message "hasVendor, if present, must be a single string" ;
+        sh:message "hasAuthor, if present, must be a single string" ;
     ] ;
 
     sh:property [

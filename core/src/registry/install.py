@@ -20,7 +20,7 @@ from .models import (
     TrustTier,
     SourceKind,
 )
-from .paths import ensure_registry_layout, ontology_vendor_dir, skills_vendor_dir
+from .paths import ensure_registry_layout, ontology_author_dir, skills_author_dir
 from .state import load_manifest, load_registry_lock, save_registry_lock
 from .index import rebuild_registry_indexes
 from .compile import compile_source_tree, rewrite_compiled_payload_paths, discover_skill_entries
@@ -83,7 +83,7 @@ def install_package_from_directory(
     manifest = load_manifest(manifest_path)
 
     effective_trust = trust_tier or manifest.trust_tier
-    install_root = ontology_vendor_dir(base) / manifest.package_id
+    install_root = ontology_author_dir(base) / manifest.package_id
 
     if install_root.exists():
         shutil.rmtree(install_root)
@@ -159,8 +159,8 @@ def install_source_package_from_directory(
     if not manifest.source_root:
         raise ValueError("Source packages require a source_root in package.json")
 
-    raw_root = skills_vendor_dir(base) / manifest.package_id
-    compiled_root = ontology_vendor_dir(base) / manifest.package_id
+    raw_root = skills_author_dir(base) / manifest.package_id
+    compiled_root = ontology_author_dir(base) / manifest.package_id
     if raw_root.exists():
         shutil.rmtree(raw_root)
     if compiled_root.exists():
@@ -230,8 +230,8 @@ def import_source_repository(
         if not skill_entries:
             raise ValueError(f"No SKILL.md files found in source repository: {repo_ref}")
 
-        raw_root = skills_vendor_dir(base) / resolved_package_id
-        compiled_root = ontology_vendor_dir(base) / resolved_package_id
+        raw_root = skills_author_dir(base) / resolved_package_id
+        compiled_root = ontology_author_dir(base) / resolved_package_id
         if raw_root.exists():
             shutil.rmtree(raw_root)
         if compiled_root.exists():
@@ -416,16 +416,16 @@ def install_package_from_sources(
     )
 
 
-def install_vendor(
-    vendor_name: str,
+def install_author(
+    author_name: str,
     packages: list,
     root: Path | None = None,
 ) -> list[InstalledPackageState]:
-    """Install all packages from a vendor.
+    """Install all packages from an author.
 
     Args:
-        vendor_name: Vendor name (e.g., "anthropics")
-        packages: List of RegistryPackageEntry objects for this vendor
+        author_name: Author name (e.g., "anthropics")
+        packages: List of RegistryPackageEntry objects for this author
         root: Ontology root path
 
     Returns:
@@ -478,7 +478,7 @@ def install_single_skill(
         manifest_json = Path(manifest_ref).read_text(encoding="utf-8")
 
     manifest = PackageManifest.model_validate_json(manifest_json)
-    install_root = ontology_vendor_dir(base) / manifest.package_id
+    install_root = ontology_author_dir(base) / manifest.package_id
 
     # Find the target skill in the manifest
     target_skill = None

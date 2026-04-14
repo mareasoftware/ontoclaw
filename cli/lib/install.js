@@ -3,12 +3,13 @@ const fsp = require("fs/promises");
 const path = require("path");
 
 const {
+  HOME_ROOT,
   BIN_DIR,
   CACHE_DIR,
   CORE_DIR,
-  ONTOLOGY_VENDOR_DIR,
+  ONTOLOGY_AUTHOR_DIR,
   EMBEDDINGS_DIR,
-  SKILLS_VENDOR_DIR,
+  SKILLS_AUTHOR_DIR,
   CORE_ONTOLOGY_PATH,
   CORE_ONTOLOGY_URL,
   DEFAULT_REPOSITORY,
@@ -46,7 +47,7 @@ async function installSkill(qualifiedId, options = {}) {
   const noEmbeddings = options.noEmbeddings || false;
   const segments = qualifiedId.split("/");
   if (segments.length < 3) {
-    fail(`Skill-level install requires a qualified id like vendor/package/skill, got: ${qualifiedId}`);
+    fail(`Skill-level install requires a qualified id like author/package/skill, got: ${qualifiedId}`);
   }
   const packageId = segments.slice(0, 2).join("/");
   const skillId = segments.slice(2).join("/");
@@ -74,7 +75,7 @@ async function installSkill(qualifiedId, options = {}) {
     }
   }
 
-  const installRoot = path.join(ONTOLOGY_VENDOR_DIR, manifest.package_id);
+  const installRoot = path.join(ONTOLOGY_AUTHOR_DIR, manifest.package_id);
   await fsp.mkdir(installRoot, { recursive: true });
 
   for (const skill of manifest.skills || []) {
@@ -136,6 +137,71 @@ async function installSkill(qualifiedId, options = {}) {
   log(`Installed skill ${qualifiedId}`);
 }
 
+async function installSingleTarget(target, options = {}) {
+  // Resolve a single-segment install target:
+  // 1. Matches an author (prefix match) → install all author packages
+  // 2. Matches a package by short name (unique) → install that package
+  // 3. Ambiguous → ask user to disambiguate
+  const noEmbeddings = options.noEmbeddings || false;
+  const entries = await loadRegistryEntries();
+
+  const authorMatches = entries.filter((e) => e.package.package_id.startsWith(target + "/"));
+  const shortNameMatches = entries.filter((e) => {
+    const parts = e.package.package_id.split("/");
+    return parts[parts.length - 1] === target || e.package.package_id.endsWith("/" + target);
+  });
+
+  // Collect all unique interpretations
+  const allMatches = [...new Set([...authorMatches, ...shortNameMatches])];
+
+  if (!allMatches.length) {
+    fail(`No packages found matching '${target}' in configured registries`);
+  }
+
+  // If it matches as author only → install all author packages
+  if (authorMatches.length > 0 && shortNameMatches.length === 0) {
+    for (const entry of authorMatches) {
+      try {
+        await installPackage(entry.package.package_id, { noEmbeddings });
+      } catch (e) {
+        warn(`Failed to install ${entry.package.package_id}: ${e.message || e}`);
+      }
+    }
+    log(`Installed author ${target}: ${authorMatches.length} package(s)`);
+    return;
+  }
+
+  // If it matches as short name only (unique) → install that package
+  if (shortNameMatches.length === 1 && authorMatches.length === 0) {
+    const pkg = shortNameMatches[0].package.package_id;
+    await installPackage(pkg, { noEmbeddings });
+    return;
+  }
+
+  // Ambiguous — show options and ask
+  const candidates = [...new Set([
+    ...authorMatches.map((e) => ({ type: "author", id: target, display: `${target}/ (${authorMatches.length} packages)` })),
+    ...shortNameMatches.map((e) => ({ type: "package", id: e.package.package_id, display: e.package.package_id })),
+  ])];
+
+  // Deduplicate by id
+  const unique = [];
+  const seen = new Set();
+  for (const c of candidates) {
+    const key = `${c.type}:${c.id}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(c);
+    }
+  }
+
+  log(`Ambiguous target '${target}'. Did you mean:`);
+  for (let i = 0; i < unique.length; i++) {
+    log(`  ${i + 1}. ${unique[i].display}`);
+  }
+  fail(`Please specify: ${unique.map((c) => c.id).join(", ")}`);
+}
+
 async function installPackage(packageId, options = {}) {
   const noEmbeddings = options.noEmbeddings || false;
   const entries = await loadRegistryEntries();
@@ -145,7 +211,7 @@ async function installPackage(packageId, options = {}) {
   }
 
   const { manifestRef, manifest } = await loadPackageManifest(match);
-  const installRoot = path.join(ONTOLOGY_VENDOR_DIR, manifest.package_id);
+  const installRoot = path.join(ONTOLOGY_AUTHOR_DIR, manifest.package_id);
   await fsp.mkdir(installRoot, { recursive: true });
 
   // Copy all skill modules
@@ -485,7 +551,7 @@ async function updateTarget(target) {
 async function importSource(repoRef) {
   await ensureLayout();
   const sourceSlug = slugify(path.basename(repoRef).replace(/\.git$/, ""));
-  const sourceDir = path.join(SKILLS_VENDOR_DIR, sourceSlug);
+  const sourceDir = path.join(SKILLS_AUTHOR_DIR, sourceSlug);
   await fsp.rm(sourceDir, { recursive: true, force: true });
   if (repoRef.startsWith("http://") || repoRef.startsWith("https://") || repoRef.endsWith(".git")) {
     runCommand("git", ["clone", "--depth", "1", repoRef, sourceDir]);
@@ -498,7 +564,7 @@ async function importSource(repoRef) {
     fail("ontocore is not installed. Run: ontoskills install core");
   }
 
-  const outputDir = path.join(ONTOLOGY_VENDOR_DIR, sourceSlug);
+  const outputDir = path.join(ONTOLOGY_AUTHOR_DIR, sourceSlug);
   await fsp.rm(outputDir, { recursive: true, force: true });
   await fsp.mkdir(outputDir, { recursive: true });
   runCommand(ontocoreWrapper, ["compile", "-i", sourceDir, "-o", outputDir, "-y", "-f"], {
@@ -566,6 +632,8 @@ async function importSource(repoRef) {
 
 module.exports = {
   installSkill,
+  installPackage,
+  installSingleTarget,
   enableSkill,
   removeInstalled,
   installMcp,

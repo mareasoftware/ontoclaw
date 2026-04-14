@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Per-skill embedding generation** — Every compiled skill produces `intents.json` with 384-dim L2-normalized embeddings alongside `ontoskill.ttl`. Compilation fails if `sentence-transformers` is missing or a skill has zero declared intents
 - **`oc:dependsOnSkill`** — New ObjectProperty replacing `oc:dependsOn` for unambiguous skill-to-skill dependencies (domain/range `oc:Skill`)
 - **9 optional metadata properties** — `category`, `version`, `license`, `vendor`, `package_name`, `is_user_invocable`, `argument_hint`, `allowed_tools`, `aliases` in ontology, SHACL shapes, Pydantic models, and serialization
-- **Multi-level install resolution** — `ontoskills install` supports vendor-level, package-level, and skill-level references via `resolve_install_ref()`
+- **Multi-level install resolution** — `ontoskills install` supports author-level, package-level, and skill-level references via `resolve_install_ref()`
 - **Parallel compile workers** — Configurable retry mechanism and parallel LLM extraction workers
 - **Direct content injection** — Skip tool-use discovery phase, inject content directly to LLM
 - **`sentence-transformers` as required dependency** — Moved from optional to core `pyproject.toml` dependencies
@@ -198,7 +198,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Changed short-id conflict resolution to use precedence `local > verified > trusted > community`
 - Changed compiler relation serialization to use stable skill URI references
 - Changed compiler enrichment to infer parent inheritance deterministically
-- Changed the import layout so raw source repos land in `skills/vendor/`
+- Changed the import layout so raw source repos land in `skills/author/`
 - Changed the enable/disable system so local compiled skills are tracked
 
 ### Fixed
@@ -208,7 +208,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed skill dependency serialization to use Literal strings
 - Fixed duplicate `skill_output_paths` entries
 - Fixed compiler-side skill inheritance for nested skills
-- Fixed imported/vendor ontology cleanup
+- Fixed imported/author ontology cleanup
 - Fixed MCP ambiguity handling
 
 ## [0.5.0] - 2026-03-17

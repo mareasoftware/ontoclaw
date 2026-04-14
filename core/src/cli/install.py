@@ -43,7 +43,7 @@ def install_package_cmd(ctx, package_path, trust_tier, ontology_root_arg):
 @click.option('-o', '--ontology-root', 'ontology_root_arg', default=None, type=click.Path(path_type=Path))
 @click.pass_context
 def import_source_repo_cmd(ctx, repo_ref, package_id, trust_tier, ontology_root_arg):
-    """Clone/copy a source skill repository into skills/vendor and compile it into ontoskills/vendor."""
+    """Clone/copy a source skill repository into skills/author and compile it into ontoskills/author."""
     from . import setup_logging
     setup_logging(ctx.obj.get('verbose', False), ctx.obj.get('quiet', False))
     root = ontology_root_arg or Path(resolve_ontology_root(OUTPUT_DIR))
@@ -62,7 +62,7 @@ def import_source_repo_cmd(ctx, repo_ref, package_id, trust_tier, ontology_root_
 def install_cmd(ctx, package_ref, ontology_root_arg):
     """Install packages by reference.
 
-    Supports vendor-level (anthropics), package-level (anthropics/financial-services-plugin),
+    Supports author-level (anthropics), package-level (anthropics/financial-services-plugin),
     and short names (impeccable). Skill-level refs are not supported for remote registries.
     """
     from . import setup_logging
@@ -73,12 +73,12 @@ def install_cmd(ctx, package_ref, ontology_root_arg):
         load_registry_index,
         load_registry_sources,
         resolve_install_ref,
-        install_vendor,
+        install_author,
         install_single_skill,
         install_package_from_sources,
         NotFoundError,
         AmbiguousRefError,
-        VendorTarget,
+        AuthorTarget,
         PackageTarget,
         SkillTarget,
     )
@@ -109,7 +109,7 @@ def install_cmd(ctx, package_ref, ontology_root_arg):
     if len(ref_parts) >= 3:
         console.print(
             "[red]Skill-level install references are not supported for remote registries. "
-            "Use a vendor ref ('vendor') or package ref ('vendor/package') instead.[/red]"
+            "Use an author ref ('author') or package ref ('author/package') instead.[/red]"
         )
         raise SystemExit(1)
 
@@ -122,10 +122,10 @@ def install_cmd(ctx, package_ref, ontology_root_arg):
         console.print(f"[red]{e}[/red]")
         raise SystemExit(1)
 
-    if isinstance(target, VendorTarget):
-        results = install_vendor(target.vendor, target.packages, root=root)
+    if isinstance(target, AuthorTarget):
+        results = install_author(target.author, target.packages, root=root)
         total_skills = sum(len(pkg.skills) for pkg in results)
-        console.print(f"[green]Installed vendor {target.vendor}: {len(results)} package(s), {total_skills} skill(s)[/green]")
+        console.print(f"[green]Installed author {target.author}: {len(results)} package(s), {total_skills} skill(s)[/green]")
 
     elif isinstance(target, PackageTarget):
         package = install_package_from_sources(target.package.package_id, root=root)

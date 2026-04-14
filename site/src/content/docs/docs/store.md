@@ -52,8 +52,8 @@ Raw repositories with `SKILL.md` files, compiled locally.
 ontoskills import-source https://github.com/user/skill-repo
 ```
 
-- Cloned to `~/.ontoskills/skills/vendor/`
-- Compiled to `~/.ontoskills/ontologies/vendor/`
+- Cloned to `~/.ontoskills/skills/author/`
+- Compiled to `~/.ontoskills/ontologies/author/`
 - Requires OntoCore compiler installed
 
 ---
@@ -74,12 +74,13 @@ To install without generating embeddings:
 ontoskills install mareasw/office/xlsx --no-embeddings
 ```
 
-Install resolution supports two levels:
+Install resolution supports three levels:
 
 | Level | Example | Behavior |
 |-------|---------|----------|
-| Full | `mareasw/office/xlsx` | Installs the exact skill |
-| Package | `mareasw/office` | Installs all skills in the package |
+| Author | `anthropics` | Installs all packages from that author |
+| Package | `anthropics/claude-code` | Installs all skills in the package |
+| Full | `anthropics/claude-code/agent-development` | Installs the exact skill |
 
 ### Enable / Disable
 
@@ -149,7 +150,7 @@ Regenerates `~/.ontoskills/ontologies/system/index.enabled.ttl` from all enabled
 │   │   └── index.enabled.ttl  # Enabled skills manifest
 │   └── */ontoskill.ttl
 ├── skills/                 # Source skills
-│   └── vendor/             # Imported repositories
+│   └── author/             # Imported repositories
 └── state/                  # Metadata and locks
     ├── registry.sources.json
     └── registry.lock.json

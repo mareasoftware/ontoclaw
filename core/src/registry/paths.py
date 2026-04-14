@@ -7,9 +7,9 @@ from pathlib import Path
 from compiler.config import (
     ONTOLOGY_ROOT,
     ONTOLOGY_SYSTEM_DIR,
-    ONTOLOGY_VENDOR_DIR,
+    ONTOLOGY_AUTHOR_DIR,
     SKILLS_DIR,
-    SKILLS_VENDOR_DIR,
+    SKILLS_AUTHOR_DIR,
 )
 
 
@@ -32,16 +32,16 @@ def system_dir(root: Path | None = None) -> Path:
     return base / Path(ONTOLOGY_SYSTEM_DIR).name
 
 
-def skills_vendor_dir(root: Path | None = None) -> Path:
-    """Get the skills vendor directory."""
+def skills_author_dir(root: Path | None = None) -> Path:
+    """Get the skills author directory."""
     base = skills_root(root)
-    return base / Path(SKILLS_VENDOR_DIR).name
+    return base / Path(SKILLS_AUTHOR_DIR).name
 
 
-def ontology_vendor_dir(root: Path | None = None) -> Path:
-    """Get the ontology vendor directory."""
+def ontology_author_dir(root: Path | None = None) -> Path:
+    """Get the ontology author directory."""
     base = ontology_root() if root is None else Path(root).resolve()
-    return base / Path(ONTOLOGY_VENDOR_DIR).name
+    return base / Path(ONTOLOGY_AUTHOR_DIR).name
 
 
 def enabled_index_path(root: Path | None = None) -> Path:

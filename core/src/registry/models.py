@@ -94,9 +94,9 @@ class RegistryIndex(BaseModel):
     embedding_model: EmbeddingModelInfo = Field(default_factory=EmbeddingModelInfo)
 
 
-class VendorTarget(BaseModel):
-    """Resolution result for a vendor-level install."""
-    vendor: str
+class AuthorTarget(BaseModel):
+    """Resolution result for an author-level install."""
+    author: str
     packages: list[RegistryPackageEntry]
 
 
@@ -113,4 +113,4 @@ class SkillTarget(BaseModel):
     sibling_deps: list[str] = Field(default_factory=list)
 
 
-InstallTarget = VendorTarget | PackageTarget | SkillTarget
+InstallTarget = AuthorTarget | PackageTarget | SkillTarget

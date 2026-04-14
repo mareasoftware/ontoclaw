@@ -181,7 +181,7 @@ def _generate_manifests_from_disk(output_path: Path, ontology_root: Path) -> Non
     if not parent_skills:
         return
 
-    vendor_name = output_path.name
+    author_name = output_path.name
     # sub_pkg_dir -> list of skill dicts
     packages_on_disk: dict[Path, list[dict]] = {}
 
@@ -214,7 +214,7 @@ def _generate_manifests_from_disk(output_path: Path, ontology_root: Path) -> Non
             depends = [_extract_skill_id(str(o)) for o in graph.objects(skill_uri, oc.dependsOnSkill)]
             intents = [str(o) for o in graph.objects(skill_uri, getattr(oc, 'resolvesIntent', None))]
 
-            # Sub-package directory = first segment under vendor
+            # Sub-package directory = first segment under author
             # e.g., rel = financial-services-plugin/funding-digest/ontoskill.ttl
             # → sub_pkg_dir = financial-services-plugin/
             parts = rel.parts
@@ -222,7 +222,7 @@ def _generate_manifests_from_disk(output_path: Path, ontology_root: Path) -> Non
                 sub_pkg_dir = output_path / parts[0]
             else:
                 sub_pkg_dir = output_path
-            pkg_id = f"{vendor_name}/{parts[0]}" if len(parts) >= 2 else vendor_name
+            pkg_id = f"{author_name}/{parts[0]}" if len(parts) >= 2 else author_name
 
             # Collect all TTL modules under this skill's directory
             skill_dir = ttl_path.parent
@@ -318,20 +318,20 @@ def retry_extraction(extract_fn, skill_id: str, *args, _max_retries: int = MAX_E
                 )
     raise last_error
 
-def _discover_vendor_dirs(input_path: Path) -> list[Path]:
-    """Discover vendor subdirectories under a skills root.
+def _discover_author_dirs(input_path: Path) -> list[Path]:
+    """Discover author subdirectories under a skills root.
 
     Each first-level subdirectory that contains SKILL.md files
-    (at any depth) is treated as a separate vendor.
+    (at any depth) is treated as a separate author.
     """
     if not input_path.is_dir():
         return []
-    vendor_dirs = []
+    author_dirs = []
     for child in sorted(input_path.iterdir()):
         if child.is_dir() and not child.name.startswith('.'):
             if any(child.rglob("SKILL.md")):
-                vendor_dirs.append(child)
-    return vendor_dirs
+                author_dirs.append(child)
+    return author_dirs
 
 
 @click.command()
@@ -348,7 +348,7 @@ def _discover_vendor_dirs(input_path: Path) -> list[Path]:
 @click.option('-v', '--verbose', is_flag=True, help='Enable debug logging')
 @click.option('-q', '--quiet', is_flag=True, help='Suppress progress output')
 @click.option('--batch', is_flag=True,
-              help='Treat input as a root of vendor directories; compile each subdirectory as a separate vendor')
+              help='Treat input as a root of author directories; compile each subdirectory as a separate author')
 @click.option('-w', '--workers', default=1, type=int,
               help='Number of parallel workers for skill extraction (default: 1)')
 @click.option('--retries', '_retries', default=MAX_EXTRACTION_RETRIES, type=int,
@@ -361,7 +361,7 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
 
     Without SKILL_NAME: Compile all files in input directory.
     With SKILL_NAME: Compile specific skill directory.
-    With --batch: Auto-discover vendor subdirectories and compile each one.
+    With --batch: Auto-discover author subdirectories and compile each one.
 
     File Processing Rules:
       - SKILL.md → ontoskill.ttl (LLM compilation)
@@ -383,32 +383,32 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
     input_path = Path(input_dir)
     output_path = Path(output_dir)
 
-    # Reset per-invocation error collector (prevents cross-vendor contamination in batch)
+    # Reset per-invocation error collector (prevents cross-author contamination in batch)
     with _errors_lock:
         _compile_errors.clear()
 
-    # Batch mode: discover vendor subdirectories and compile each one
+    # Batch mode: discover author subdirectories and compile each one
     if batch:
-        vendor_dirs = _discover_vendor_dirs(input_path)
-        if not vendor_dirs:
-            console.print(f"[yellow]No vendor directories with skills found in {input_path}[/yellow]")
+        author_dirs = _discover_author_dirs(input_path)
+        if not author_dirs:
+            console.print(f"[yellow]No author directories with skills found in {input_path}[/yellow]")
             return
         # system/ lives at the same level as packages/ (sibling, not inside)
         batch_ontology_root = output_path.parent
         ensure_registry_layout(batch_ontology_root)
 
-        total = len(vendor_dirs)
-        console.print(f"[bold]Discovered {total} vendor(s) in {input_path}[/bold]")
-        for i, vendor_dir in enumerate(vendor_dirs, 1):
-            console.print(f"\n[bold cyan][{i}/{total}] Compiling {vendor_dir.name}[/bold cyan]")
+        total = len(author_dirs)
+        console.print(f"[bold]Discovered {total} author(s) in {input_path}[/bold]")
+        for i, author_dir in enumerate(author_dirs, 1):
+            console.print(f"\n[bold cyan][{i}/{total}] Compiling {author_dir.name}[/bold cyan]")
             try:
-                # Namespace each vendor under its name to avoid collisions
-                vendor_output = output_path / vendor_dir.name
+                # Namespace each author under its name to avoid collisions
+                author_output = output_path / author_dir.name
                 ctx.invoke(
                     compile_cmd,
                     skill_name=None,
-                    input_dir=str(vendor_dir),
-                    output_dir=str(vendor_output),
+                    input_dir=str(author_dir),
+                    output_dir=str(author_output),
                     dry_run=dry_run,
                     skip_security=skip_security,
                     force=force,
@@ -421,8 +421,8 @@ def compile_cmd(ctx, skill_name, input_dir, output_dir, dry_run, skip_security, 
                     _ontology_root=str(batch_ontology_root),
                 )
             except Exception as e:
-                console.print(f"[red]Failed {vendor_dir.name}: {e}[/red]")
-                _record_error(vendor_dir.name, str(e), "batch")
+                console.print(f"[red]Failed {author_dir.name}: {e}[/red]")
+                _record_error(author_dir.name, str(e), "batch")
         # Flush error log
         _write_error_log(output_path)
         return

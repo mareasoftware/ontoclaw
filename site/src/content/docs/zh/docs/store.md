@@ -65,8 +65,8 @@ ontoskills store list
 ontoskills import-source https://github.com/user/skill-repo
 ```
 
-- 克隆到 `~/.ontoskills/skills/vendor/`
-- 编译到 `~/.ontoskills/ontologies/vendor/`
+- 克隆到 `~/.ontoskills/skills/author/`
+- 编译到 `~/.ontoskills/ontologies/author/`
 - 需要安装 OntoCore 编译器
 
 ---
@@ -155,7 +155,7 @@ ontoskills rebuild-index
 │   │   └── index.enabled.ttl  # 已启用技能清单
 │   └── */ontoskill.ttl
 ├── skills/                 # 源技能
-│   └── vendor/             # 导入的仓库
+│   └── author/             # 导入的仓库
 └── state/                  # 元数据和锁
     ├── registry.sources.json
     └── registry.lock.json

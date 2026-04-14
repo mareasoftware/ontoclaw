@@ -168,7 +168,7 @@ ontoskills store add-source acme https://example.com/skills/index.json
 ontoskills import-source https://github.com/user/skill-repo
 ```
 
-导入的技能存储在 `~/.ontoskills/skills/vendor/` 下，并编译到 `~/.ontoskills/ontologies/vendor/`。
+导入的技能存储在 `~/.ontoskills/skills/author/` 下，并编译到 `~/.ontoskills/ontologies/author/`。
 
 ---
 
@@ -308,12 +308,12 @@ ontoskills uninstall --all
 │   │       ├── model.onnx     # ONNX 嵌入模型 (~90MB)
 │   │       ├── tokenizer.json # HuggingFace 分词器
 │   │       └── intents.json   # 合并的意图嵌入
-│   └── vendor/            # 已安装的技能包
-│       └── <vendor>/<pkg>/<skill>/
+│   └── author/            # 已安装的技能包
+│       └── <author>/<pkg>/<skill>/
 │           ├── ontoskill.ttl
 │           └── intents.json   # 每技能预计算的嵌入
 ├── skills/                # 源技能
-│   └── vendor/            # 导入的仓库
+│   └── author/            # 导入的仓库
 └── state/                 # 锁定文件和元数据
     ├── registry.sources.json
     └── registry.lock.json

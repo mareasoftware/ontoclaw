@@ -9,7 +9,7 @@ const {
   CONFIG_PATH,
   ENABLED_INDEX_PATH,
   ONTOLOGY_DIR,
-  ONTOLOGY_VENDOR_DIR,
+  ONTOLOGY_AUTHOR_DIR,
   EMBEDDINGS_DIR,
   CORE_ONTOLOGY_URL,
   DEFAULT_REGISTRY_URL,
@@ -62,7 +62,7 @@ async function loadConfig() {
 // --- Local skill discovery ---
 
 function isIgnoredDir(name) {
-  return new Set(["system", "vendor", "official", "community"]).has(name);
+  return new Set(["system", "author", "official", "community"]).has(name);
 }
 
 async function walkForOntoskills(dir, found = []) {
@@ -70,7 +70,7 @@ async function walkForOntoskills(dir, found = []) {
   for (const entry of entries) {
     const target = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (path.resolve(target) === path.resolve(ONTOLOGY_VENDOR_DIR)) {
+      if (path.resolve(target) === path.resolve(ONTOLOGY_AUTHOR_DIR)) {
         continue;
       }
       if (path.resolve(path.dirname(target)) === path.resolve(ONTOLOGY_DIR) && isIgnoredDir(entry.name)) {
@@ -102,7 +102,7 @@ async function syncLocalPackage(lock) {
   );
   const skills = [];
   for (const modulePath of localPaths.sort()) {
-    if (modulePath.startsWith(path.resolve(ONTOLOGY_VENDOR_DIR))) {
+    if (modulePath.startsWith(path.resolve(ONTOLOGY_AUTHOR_DIR))) {
       continue;
     }
     const { skillId } = await extractSkillInfo(modulePath);
@@ -184,12 +184,12 @@ async function walkForIntentsJson(dir, found = []) {
 async function mergeEmbeddings() {
   await fsp.mkdir(EMBEDDINGS_DIR, { recursive: true });
 
-  // Scan all vendor packages for intents.json files
+  // Scan all author packages for intents.json files
   let intentsFiles = [];
   try {
-    intentsFiles = await walkForIntentsJson(ONTOLOGY_VENDOR_DIR);
+    intentsFiles = await walkForIntentsJson(ONTOLOGY_AUTHOR_DIR);
   } catch (_error) {
-    // Vendor dir may not exist yet
+    // Author dir may not exist yet
   }
 
   // Build merged intent map (keyed by intent string)

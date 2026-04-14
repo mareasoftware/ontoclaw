@@ -1,9 +1,9 @@
-"""Tests for FIELD_ALIASES normalization and vendor/package derivation."""
+"""Tests for FIELD_ALIASES normalization and author/package derivation."""
 
 import pytest
 from compiler.loader import (
     normalize_field_aliases,
-    derive_vendor_and_package,
+    derive_author_and_package,
 )
 
 
@@ -42,17 +42,17 @@ class TestFieldAliases:
         assert result["version"] == "1.0"
 
 
-class TestVendorPackageDerivation:
-    """Verify vendor and package_name are derived from directory path."""
+class TestAuthorPackageDerivation:
+    """Verify author and package_name are derived from directory path."""
 
     def test_derive_from_skills_path(self):
-        result = derive_vendor_and_package("/home/user/.agents/skills/anthropics/claude-code/brainstorming")
+        result = derive_author_and_package("/home/user/.agents/skills/anthropics/claude-code/brainstorming")
         assert result == ("anthropics", "claude-code")
 
     def test_derive_from_nested_path(self):
-        result = derive_vendor_and_package("/home/user/.agents/skills/claude-office-skills/skills/jira-automation")
+        result = derive_author_and_package("/home/user/.agents/skills/claude-office-skills/skills/jira-automation")
         assert result == ("claude-office-skills", "skills")
 
     def test_derive_returns_none_for_short_path(self):
-        result = derive_vendor_and_package("/home/user/skill")
+        result = derive_author_and_package("/home/user/skill")
         assert result == (None, None)

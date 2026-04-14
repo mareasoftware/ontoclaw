@@ -63,14 +63,14 @@ def test_exact_match_resolves_to_package():
     assert result.package.package_id == "anthropics/financial-services-plugin"
 
 
-def test_prefix_match_resolves_to_vendor():
+def test_prefix_match_resolves_to_author():
     index = _make_index(
         "anthropics/financial-services-plugin",
         "anthropics/claude-code",
         "obra/superpowers",
     )
     result = resolve_install_ref("anthropics", index)
-    assert result.vendor == "anthropics"
+    assert result.author == "anthropics"
     assert len(result.packages) == 2
 
 
@@ -98,7 +98,7 @@ def test_not_found_raises():
         resolve_install_ref("nonexistent", index)
 
 
-def test_empty_vendor_raises():
+def test_empty_author_raises():
     index = _make_index("obra/superpowers")
     with pytest.raises(NotFoundError, match="not found"):
         resolve_install_ref("xyz", index)

@@ -42,8 +42,8 @@ OUTPUT_DIR = os.getenv(
     ONTOLOGY_ROOT
 )
 ONTOLOGY_SYSTEM_DIR = str(Path(ONTOLOGY_ROOT) / 'system')
-SKILLS_VENDOR_DIR = str(Path(SKILLS_DIR) / 'vendor')
-ONTOLOGY_VENDOR_DIR = str(Path(ONTOLOGY_ROOT) / 'vendor')
+SKILLS_AUTHOR_DIR = str(Path(SKILLS_DIR) / 'author')
+ONTOLOGY_AUTHOR_DIR = str(Path(ONTOLOGY_ROOT) / 'author')
 
 
 def resolve_ontology_root(path: str | Path) -> Path:
@@ -61,7 +61,7 @@ def resolve_ontology_root(path: str | Path) -> Path:
 ANTHROPIC_MODEL = os.getenv('ANTHROPIC_MODEL', 'claude-opus-4-6')
 SECURITY_MODEL = os.getenv('SECURITY_MODEL', 'claude-opus-4-6')
 
-# Default author for skills without a vendor in directory structure
+# Default author for skills without an author in directory structure
 DEFAULT_SKILLS_AUTHOR = os.environ.get('DEFAULT_SKILLS_AUTHOR')
 
 # Processing limits

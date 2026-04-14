@@ -1610,11 +1610,11 @@ fn build_skill_record(
         .ok()
         .and_then(|path| path.components().next().map(|c| c.as_os_str().to_string_lossy().to_string()));
     let trust_tier = match rel.as_deref() {
-        Some("vendor") => "verified",
+        Some("author") => "verified",
         _ => "local",
     }
     .to_string();
-    let package_id = if let Ok(relative) = module_path.strip_prefix(ontology_root.join("vendor")) {
+    let package_id = if let Ok(relative) = module_path.strip_prefix(ontology_root.join("author")) {
         relative
             .components()
             .next()
@@ -2039,10 +2039,10 @@ oc:skill_disabled a oc:Skill, oc:DeclarativeSkill ;
 
     fn write_ambiguous_registry(root: &Path) {
         fs::create_dir_all(root.join("system")).unwrap();
-        fs::create_dir_all(root.join("vendor").join("marea/office").join("skills")).unwrap();
+        fs::create_dir_all(root.join("author").join("marea/office").join("skills")).unwrap();
         fs::create_dir_all(root.join("xlsx")).unwrap();
         fs::write(
-            root.join("vendor").join("marea/office").join("skills").join("xlsx.ttl"),
+            root.join("author").join("marea/office").join("skills").join("xlsx.ttl"),
             format!(
                 r#"
 @prefix oc: <{base}> .
@@ -2093,7 +2093,7 @@ oc:skill_xlsx_local a oc:Skill, oc:ExecutableSkill ;
             .replace(
                 "__MODULE__",
                 &root
-                    .join("vendor")
+                    .join("author")
                     .join("marea/office")
                     .join("skills")
                     .join("xlsx.ttl")
@@ -2112,7 +2112,7 @@ oc:skill_xlsx_local a oc:Skill, oc:ExecutableSkill ;
     owl:imports <file://{local}> .
 "#,
                 verified = root
-                    .join("vendor")
+                    .join("author")
                     .join("marea/office")
                     .join("skills")
                     .join("xlsx.ttl")

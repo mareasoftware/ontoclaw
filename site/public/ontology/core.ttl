@@ -327,9 +327,9 @@ oc:hasLicense a owl:DatatypeProperty ;
     rdfs:domain oc:Skill ;
     rdfs:range xsd:string .
 
-oc:hasVendor a owl:DatatypeProperty ;
-    rdfs:label "has vendor" ;
-    rdfs:comment "Vendor/source name (e.g., anthropics, claude-office-skills)" ;
+oc:hasAuthor a owl:DatatypeProperty ;
+    rdfs:label "has author" ;
+    rdfs:comment "Author/source name (e.g., anthropics, claude-office-skills)" ;
     rdfs:domain oc:Skill ;
     rdfs:range xsd:string .
 

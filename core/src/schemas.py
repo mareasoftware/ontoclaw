@@ -110,7 +110,7 @@ class ExtractedSkill(BaseModel):
     category: str | None = None
     version: str | None = None
     license: str | None = None
-    vendor: str | None = None
+    author: str | None = None
     package_name: str | None = None
     is_user_invocable: bool = True
     argument_hint: str | None = None

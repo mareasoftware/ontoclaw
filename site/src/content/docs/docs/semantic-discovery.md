@@ -245,8 +245,8 @@ A compact JSON schema describing available classes and properties:
 │   │       ├── model.onnx           # Global ONNX model (~90MB)
 │   │       ├── tokenizer.json       # HuggingFace tokenizer
 │   │       └── intents.json         # MERGED from all installed skills
-│   └── vendor/
-│       └── <vendor>/<pkg>/<skill>/
+│   └── author/
+│       └── <author>/<pkg>/<skill>/
 │           ├── ontoskill.ttl
 │           └── intents.json         # Per-skill pre-computed embeddings
 ```

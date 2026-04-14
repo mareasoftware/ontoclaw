@@ -21,7 +21,7 @@ class TestNewDatatypeProperties:
         "hasCategory": XSD.string,
         "hasVersion": XSD.string,
         "hasLicense": XSD.string,
-        "hasVendor": XSD.string,
+        "hasAuthor": XSD.string,
         "hasPackageName": XSD.string,
         "isUserInvocable": XSD.boolean,
         "hasArgumentHint": XSD.string,
@@ -74,7 +74,7 @@ class TestNewShaclShapes:
         return g
 
     NEW_PROPERTIES = [
-        "hasCategory", "hasVersion", "hasLicense", "hasVendor",
+        "hasCategory", "hasVersion", "hasLicense", "hasAuthor",
         "hasPackageName", "hasArgumentHint", "hasAllowedTool", "hasAlias",
     ]
 
@@ -126,7 +126,7 @@ class TestExtractedSkillNewFields:
         assert skill.category is None
         assert skill.version is None
         assert skill.license is None
-        assert skill.vendor is None
+        assert skill.author is None
         assert skill.package_name is None
         assert skill.is_user_invocable is True
         assert skill.argument_hint is None
@@ -147,7 +147,7 @@ class TestExtractedSkillNewFields:
             category="automation",
             version="1.0.0",
             license="MIT",
-            vendor="anthropics",
+            author="anthropics",
             package_name="claude-plugins-official",
             is_user_invocable=False,
             argument_hint="issue-key",

@@ -60,7 +60,7 @@ def mime_type_from_path(path: Path) -> str:
     return MIME_MAP.get(path.suffix.lower(), 'application/octet-stream')
 
 
-# Normalized field mapping for heterogeneous vendor frontmatter
+# Normalized field mapping for heterogeneous author frontmatter
 FIELD_ALIASES: dict[str, list[str]] = {
     "category": ["category", "categories", "type", "skill_type", "domain"],
     "version": ["version", "skill_version", "ver"],
@@ -91,10 +91,10 @@ def normalize_field_aliases(raw: dict) -> dict:
     return result
 
 
-def derive_vendor_and_package(provenance_path: str) -> tuple[str | None, str | None]:
-    """Derive vendor and package_name from the skill's directory structure.
+def derive_author_and_package(provenance_path: str) -> tuple[str | None, str | None]:
+    """Derive author and package_name from the skill's directory structure.
 
-    Expects a path like: .../skills/{vendor}/{package}/...
+    Expects a path like: .../skills/{author}/{package}/...
     Looks for a 'skills' directory segment and takes the next two levels.
     """
     parts = Path(provenance_path).resolve().parts

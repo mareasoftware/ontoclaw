@@ -14,7 +14,7 @@ delete require.cache[require.resolve("../lib/paths")];
 delete require.cache[require.resolve("../lib/registry")];
 delete require.cache[require.resolve("../lib/install")];
 
-const { EMBEDDINGS_DIR, ONTOLOGY_DIR, ONTOLOGY_VENDOR_DIR, SYSTEM_DIR, ensureLayout, writeJson } = require("../lib/paths");
+const { EMBEDDINGS_DIR, ONTOLOGY_DIR, ONTOLOGY_AUTHOR_DIR, SYSTEM_DIR, ensureLayout, writeJson } = require("../lib/paths");
 const { mergeEmbeddings } = require("../lib/registry");
 
 // Helper: create a fake intents.json
@@ -43,9 +43,9 @@ test.after(async () => {
 // mergeEmbeddings() tests
 // =============================================================================
 
-test("mergeEmbeddings creates system/embeddings/intents.json from vendor intents.json files", async () => {
-  // Create a vendor package with an intents.json
-  const pkgDir = path.join(ONTOLOGY_VENDOR_DIR, "test-vendor", "test-pkg", "my-skill");
+test("mergeEmbeddings creates system/embeddings/intents.json from author intents.json files", async () => {
+  // Create an author package with an intents.json
+  const pkgDir = path.join(ONTOLOGY_AUTHOR_DIR, "test-vendor", "test-pkg", "my-skill");
   await fs.mkdir(pkgDir, { recursive: true });
 
   const intentsData = makeIntentsJson([
@@ -70,14 +70,14 @@ test("mergeEmbeddings creates system/embeddings/intents.json from vendor intents
 
 test("mergeEmbeddings merges duplicate intents across packages", async () => {
   // Package 1
-  const pkg1Dir = path.join(ONTOLOGY_VENDOR_DIR, "vendor-a", "pkg", "skill-a");
+  const pkg1Dir = path.join(ONTOLOGY_AUTHOR_DIR, "vendor-a", "pkg", "skill-a");
   await fs.mkdir(pkg1Dir, { recursive: true });
   await writeJson(path.join(pkg1Dir, "intents.json"), makeIntentsJson([
     { intent: "send_email", skills: ["gmail"] },
   ]));
 
   // Package 2 with same intent
-  const pkg2Dir = path.join(ONTOLOGY_VENDOR_DIR, "vendor-b", "pkg", "skill-b");
+  const pkg2Dir = path.join(ONTOLOGY_AUTHOR_DIR, "vendor-b", "pkg", "skill-b");
   await fs.mkdir(pkg2Dir, { recursive: true });
   await writeJson(path.join(pkg2Dir, "intents.json"), makeIntentsJson([
     { intent: "send_email", skills: ["outlook"] },
@@ -105,10 +105,10 @@ test("mergeEmbeddings is idempotent — calling twice produces same result", asy
   assert.equal(first, second, "Repeated merge should produce identical output");
 });
 
-test("mergeEmbeddings handles empty vendor dir — writes empty intents list", async () => {
-  // Clean vendor dir
-  await fs.rm(ONTOLOGY_VENDOR_DIR, { recursive: true, force: true });
-  await fs.mkdir(ONTOLOGY_VENDOR_DIR, { recursive: true });
+test("mergeEmbeddings handles empty author dir — writes empty intents list", async () => {
+  // Clean author dir
+  await fs.rm(ONTOLOGY_AUTHOR_DIR, { recursive: true, force: true });
+  await fs.mkdir(ONTOLOGY_AUTHOR_DIR, { recursive: true });
 
   await mergeEmbeddings();
 
@@ -119,8 +119,8 @@ test("mergeEmbeddings handles empty vendor dir — writes empty intents list", a
   assert.equal(merged.intents.length, 0);
 });
 
-test("mergeEmbeddings skips non-intents.json files in vendor", async () => {
-  const pkgDir = path.join(ONTOLOGY_VENDOR_DIR, "vendor-x", "pkg", "skill-x");
+test("mergeEmbeddings skips non-intents.json files in author", async () => {
+  const pkgDir = path.join(ONTOLOGY_AUTHOR_DIR, "vendor-x", "pkg", "skill-x");
   await fs.mkdir(pkgDir, { recursive: true });
 
   // Only a TTL file, no intents.json
@@ -129,7 +129,7 @@ test("mergeEmbeddings skips non-intents.json files in vendor", async () => {
   await mergeEmbeddings();
 
   const merged = JSON.parse(await fs.readFile(path.join(EMBEDDINGS_DIR, "intents.json"), "utf-8"));
-  assert.equal(merged.intents.length, 0, "No intents from vendor without intents.json");
+  assert.equal(merged.intents.length, 0, "No intents from author without intents.json");
 });
 
 test("EMBEDDINGS_DIR constant points to system/embeddings", () => {

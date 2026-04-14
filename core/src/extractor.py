@@ -64,7 +64,7 @@ def resolve_package_id(skill_dir: Path, input_path: Path | None = None) -> str:
     """Resolve package ID from directory structure.
 
     The package_id is the path between input_path and skill_dir,
-    representing vendor/repo. Falls back to DEFAULT_SKILLS_AUTHOR
+    representing author/repo. Falls back to DEFAULT_SKILLS_AUTHOR
     env var if skill is at root of input, and 'local' if unset.
 
     When input_path is provided, the path between input_path and skill_dir
@@ -86,19 +86,19 @@ def resolve_package_id(skill_dir: Path, input_path: Path | None = None) -> str:
     except ValueError:
         return _resolve_package_id_from_manifest(skill_dir)
 
-    # The input directory name is the vendor (e.g., "remotion-dev", "coinbase")
-    vendor_segment = _normalize_package_id_segment(input_path.resolve().name)
+    # The input directory name is the author (e.g., "remotion-dev", "coinbase")
+    author_segment = _normalize_package_id_segment(input_path.resolve().name)
 
-    # Intermediate path segments between vendor and skill dir
+    # Intermediate path segments between author and skill dir
     intermediate = rel.parts[:-1] if rel.parts and rel.parts[-1] != '.' else ()
 
     if not intermediate:
-        # Skill is directly under vendor dir (e.g., claude-office-skills/apple-shortcuts-integration/)
-        # The vendor IS the author — no need for an extra prefix.
-        return vendor_segment
+        # Skill is directly under author dir (e.g., claude-office-skills/apple-shortcuts-integration/)
+        # The author IS the author — no need for an extra prefix.
+        return author_segment
 
-    # Prepend vendor to intermediate segments
-    all_parts = (vendor_segment,) + tuple(_normalize_package_id_segment(p) for p in intermediate)
+    # Prepend author to intermediate segments
+    all_parts = (author_segment,) + tuple(_normalize_package_id_segment(p) for p in intermediate)
     return "/".join(all_parts)
 
 

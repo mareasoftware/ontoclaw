@@ -10,7 +10,7 @@ from .models import (
     PackageTarget,
     RegistryIndex,
     SkillTarget,
-    VendorTarget,
+    AuthorTarget,
 )
 
 if TYPE_CHECKING:
@@ -81,7 +81,7 @@ def resolve_install_ref(
 
     Resolution order:
     1. Exact match on package_id
-    2. Prefix match (vendor-level)
+    2. Prefix match (author-level)
     3. Short name (last segment of package_id, unique match only)
     4. Skill-level (if ref has 3+ segments or short_name/skill form)
 
@@ -91,7 +91,7 @@ def resolve_install_ref(
         manifest_base: Base directory for resolving manifest_path paths (needed for skill-level)
 
     Returns:
-        VendorTarget, PackageTarget, or SkillTarget
+        AuthorTarget, PackageTarget, or SkillTarget
 
     Raises:
         NotFoundError: Reference not found
@@ -103,12 +103,12 @@ def resolve_install_ref(
     if ref in package_map:
         return PackageTarget(package=package_map[ref])
 
-    # Step 2: Prefix match (vendor-level, single-segment refs only)
+    # Step 2: Prefix match (author-level, single-segment refs only)
     if "/" not in ref:
         prefix = ref + "/"
         matching = [p for p in index.packages if p.package_id.startswith(prefix)]
         if matching:
-            return VendorTarget(vendor=ref, packages=matching)
+            return AuthorTarget(author=ref, packages=matching)
 
     # Step 3: Short name resolution
     candidates = [

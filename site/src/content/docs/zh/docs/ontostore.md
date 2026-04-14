@@ -27,7 +27,7 @@ ontoskills install mareasw/office/xlsx
 市场安装使用限定 ID：
 
 ```text
-<vendor>/<package>/<skill>
+<author>/<package>/<skill>
 ```
 
 支持多层级解析：

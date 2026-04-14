@@ -1,6 +1,6 @@
 """Skill Registry - compact index of known skills for LLM context and validation.
 
-Built from Phase 1 directory scans (same vendor/package only).
+Built from Phase 1 directory scans (same author/package only).
 Used to:
 - Inject known-skills context into the LLM system prompt
 - Validate/filter extracted depends_on, extends, contradicts references
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SkillRegistry:
-    """Compact registry of skills in the same vendor/package."""
+    """Compact registry of skills in the same author/package."""
 
     # skill_id -> short description (from frontmatter)
     skills: dict[str, str] = field(default_factory=dict)
@@ -96,7 +96,7 @@ class SkillRegistry:
         lines = ["\n## KNOWN SKILLS IN THIS PACKAGE\n"]
 
         pkg_label = f" ({self.package_name})" if self.package_name else ""
-        lines.append(f"The following skills exist in this vendor{pkg_label}:\n")
+        lines.append(f"The following skills exist in this author{pkg_label}:\n")
 
         for skill_id, desc in sorted(self.skills.items()):
             if desc:

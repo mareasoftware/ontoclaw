@@ -2,7 +2,7 @@
 
 const { log, fail, ensureLayout } = require("./lib/paths");
 const { rebuildIndexes, registryPackageVersion, loadRegistryLock, loadReleaseLock, fetchLatestRelease, searchRegistry, registryAddSource, registryList } = require("./lib/registry");
-const { installSkill, installPackage, enableSkill, removeInstalled, installCore, installMcp, updateTarget, importSource } = require("./lib/install");
+const { installSkill, installPackage, installSingleTarget, enableSkill, removeInstalled, installCore, installMcp, updateTarget, importSource } = require("./lib/install");
 const { installMcpBootstrap } = require("./lib/mcp-config");
 
 function usage() {
@@ -105,7 +105,8 @@ async function main() {
       if (segments.length === 2) return installPackage(target, { noEmbeddings });
       return installSkill(target, { noEmbeddings });
     }
-    fail("Install target must be ontomcp, ontocore, a package id (vendor/package), or a skill id (vendor/package/skill)");
+    // Single-segment target → smart resolution (author, short name, or ask)
+    return installSingleTarget(target, { noEmbeddings });
   }
 
   if (command === "update") {

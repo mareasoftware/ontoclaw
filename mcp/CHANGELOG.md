@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Trust tiers from catalog** — `trust_tier_map()` wired into embedding engine at startup for hybrid scoring
 - **Version aligned** — OntoMCP 0.11.0 matches OntoCore 0.11.0
 - **`dependsOnSkill` in JS** — `extractSkillInfo()` regex updated to match `oc:dependsOnSkill`
-- **JS install fix** — `installSkill()` now correctly parses `vendor/package/skill` refs (was splitting at first `/`)
+- **JS install fix** — `installSkill()` now correctly parses `author/package/skill` refs (was splitting at first `/`)
 
 ## [0.9.1] - 2026-03-24
 

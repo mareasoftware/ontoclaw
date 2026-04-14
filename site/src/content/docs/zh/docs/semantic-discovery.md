@@ -245,8 +245,8 @@ ontoskills install mareasw/office/xlsx --no-embeddings
 │   │       ├── model.onnx           # 全局 ONNX 模型 (~90MB)
 │   │       ├── tokenizer.json       # HuggingFace 分词器
 │   │       └── intents.json         # 从所有已安装技能合并
-│   └── vendor/
-│       └── <vendor>/<pkg>/<skill>/
+│   └── author/
+│       └── <author>/<pkg>/<skill>/
 │           ├── ontoskill.ttl
 │           └── intents.json         # 每技能预计算的嵌入
 ```

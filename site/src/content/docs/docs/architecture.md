@@ -192,7 +192,7 @@ The user-facing `ontoskills` CLI is responsible for:
 
 - installing `ontomcp`
 - installing `ontocore`
-- importing raw source repositories into `skills/vendor/`
+- importing raw source repositories into `skills/author/`
 - installing compiled packages from OntoStore or third-party stores
 - enabling and disabling skills before they reach the MCP runtime
 
@@ -202,4 +202,4 @@ OntoStore is published as a static GitHub repository and is built in by default.
 
 - Official packages are available immediately after install
 - Third-party stores are added explicitly with `store add-source`
-- Raw source repositories are compiled locally before being installed into `ontoskills/vendor/`
+- Raw source repositories are compiled locally before being installed into `ontoskills/author/`

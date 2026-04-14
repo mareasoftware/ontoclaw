@@ -9,9 +9,9 @@ const { spawnSync } = require("child_process");
 const HOME_ROOT = process.env.ONTOSKILLS_HOME || process.env.ONTOSKILL_HOME || path.join(os.homedir(), ".ontoskills");
 const BIN_DIR = path.join(HOME_ROOT, "bin");
 const ONTOLOGY_DIR = path.join(HOME_ROOT, "ontologies");
-const ONTOLOGY_VENDOR_DIR = path.join(ONTOLOGY_DIR, "vendor");
+const ONTOLOGY_AUTHOR_DIR = path.join(ONTOLOGY_DIR, "author");
 const SKILLS_DIR = path.join(HOME_ROOT, "skills");
-const SKILLS_VENDOR_DIR = path.join(SKILLS_DIR, "vendor");
+const SKILLS_AUTHOR_DIR = path.join(SKILLS_DIR, "author");
 const STATE_DIR = path.join(HOME_ROOT, "state");
 const CORE_DIR = path.join(HOME_ROOT, "core");
 const CACHE_DIR = path.join(STATE_DIR, "cache");
@@ -57,7 +57,7 @@ function warn(message) {
 // --- Filesystem utilities ---
 
 async function ensureLayout() {
-  for (const target of [BIN_DIR, ONTOLOGY_DIR, ONTOLOGY_VENDOR_DIR, SKILLS_DIR, SKILLS_VENDOR_DIR, STATE_DIR, CORE_DIR, CACHE_DIR, SYSTEM_DIR, EMBEDDINGS_DIR]) {
+  for (const target of [BIN_DIR, ONTOLOGY_DIR, ONTOLOGY_AUTHOR_DIR, SKILLS_DIR, SKILLS_AUTHOR_DIR, STATE_DIR, CORE_DIR, CACHE_DIR, SYSTEM_DIR, EMBEDDINGS_DIR]) {
     await fsp.mkdir(target, { recursive: true });
   }
 }
@@ -140,9 +140,9 @@ module.exports = {
   HOME_ROOT,
   BIN_DIR,
   ONTOLOGY_DIR,
-  ONTOLOGY_VENDOR_DIR,
+  ONTOLOGY_AUTHOR_DIR,
   SKILLS_DIR,
-  SKILLS_VENDOR_DIR,
+  SKILLS_AUTHOR_DIR,
   STATE_DIR,
   CORE_DIR,
   CACHE_DIR,

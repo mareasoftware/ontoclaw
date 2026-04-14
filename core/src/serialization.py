@@ -327,7 +327,7 @@ def serialize_skill(
     if hasattr(skill, 'category') and skill.category:
         graph.add((skill_uri, oc.hasCategory, Literal(skill.category)))
 
-    # version, license, vendor belong in package.json manifest, not ontology TTL
+    # version, license, author belong in package.json manifest, not ontology TTL
 
     if hasattr(skill, 'package_name') and skill.package_name:
         graph.add((skill_uri, oc.hasPackageName, Literal(skill.package_name)))

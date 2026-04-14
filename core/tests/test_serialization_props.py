@@ -52,13 +52,13 @@ class TestNewPropertySerialization:
         vals = list(g.objects(uri, OC.hasLicense))
         assert vals == []
 
-    def test_vendor_not_serialized_to_ttl(self):
-        """vendor belongs in package.json manifest, not ontology TTL."""
-        skill = _make_skill(vendor="anthropics")
+    def test_author_not_serialized_to_ttl(self):
+        """author belongs in package.json manifest, not ontology TTL."""
+        skill = _make_skill(author="anthropics")
         g = Graph()
         serialize_skill(g, skill)
         uri = skill_uri_for_skill(skill)
-        vals = list(g.objects(uri, OC.hasVendor))
+        vals = list(g.objects(uri, OC.hasAuthor))
         assert vals == []
 
     def test_package_name_serialized(self):
@@ -110,5 +110,5 @@ class TestNewPropertySerialization:
         serialize_skill(g, skill)
         uri = skill_uri_for_skill(skill)
         assert len(list(g.objects(uri, OC.hasCategory))) == 0
-        assert len(list(g.objects(uri, OC.hasVendor))) == 0
+        assert len(list(g.objects(uri, OC.hasAuthor))) == 0
         assert len(list(g.objects(uri, OC.hasAlias))) == 0

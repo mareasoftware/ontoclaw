@@ -1002,9 +1002,9 @@ def test_generate_manifests_from_disk_discovers_embedding_files(tmp_path):
     import json
     from compiler.cli.compile import _generate_manifests_from_disk
 
-    # output_path = vendor dir (e.g., "test-vendor")
+    # output_path = author dir (e.g., "test-author")
     # structure: output_path/my-skill/ontoskill.ttl + intents.json
-    output_path = tmp_path / "test-vendor"
+    output_path = tmp_path / "test-author"
     skill_dir = output_path / "my-skill"
     skill_dir.mkdir(parents=True)
 
@@ -1048,7 +1048,7 @@ def test_generate_manifests_from_disk_no_embeddings_produces_empty_list(tmp_path
     import json
     from compiler.cli.compile import _generate_manifests_from_disk
 
-    output_path = tmp_path / "test-vendor"
+    output_path = tmp_path / "test-author"
     skill_dir = output_path / "basic-skill"
     skill_dir.mkdir(parents=True)
 

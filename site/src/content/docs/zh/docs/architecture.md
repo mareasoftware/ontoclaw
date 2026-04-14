@@ -184,7 +184,7 @@ OntoMCP 从 `ontoskills/` 读取已编译的本体包。它不直接读取原始
 
 - 安装 `ontomcp`
 - 安装 `ontocore`
-- 将原始源仓库导入到 `skills/vendor/`
+- 将原始源仓库导入到 `skills/author/`
 - 从 OntoStore 或第三方商店安装已编译的包
 - 在技能到达 MCP 运行时之前启用和禁用技能
 
@@ -194,4 +194,4 @@ OntoStore 作为静态 GitHub 仓库发布，默认内置。
 
 - 官方包在安装后立即可用
 - 第三方商店通过 `store add-source` 显式添加
-- 原始源仓库在安装到 `ontoskills/vendor/` 之前在本地编译
+- 原始源仓库在安装到 `ontoskills/author/` 之前在本地编译

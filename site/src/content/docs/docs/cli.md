@@ -94,7 +94,7 @@ The package ID supports multi-level resolution:
 
 | Level | Example | Installs |
 |-------|---------|----------|
-| **Vendor** | `mareasw` | All packages from that vendor |
+| **Author** | `mareasw` | All packages from that author |
 | **Package** | `mareasw/office` | All skills in that package |
 | **Skill** | `mareasw/office/xlsx` | Single skill (with dependency check) |
 
@@ -168,7 +168,7 @@ Import a raw Git repository containing SKILL.md files.
 ontoskills import-source https://github.com/user/skill-repo
 ```
 
-Imported skills are stored under `~/.ontoskills/skills/vendor/` and compiled to `~/.ontoskills/ontologies/vendor/`.
+Imported skills are stored under `~/.ontoskills/skills/author/` and compiled to `~/.ontoskills/ontologies/author/`.
 
 ---
 
@@ -308,12 +308,12 @@ ontoskills uninstall --all
 │   │       ├── model.onnx     # ONNX embedding model (~90MB)
 │   │       ├── tokenizer.json # HuggingFace tokenizer
 │   │       └── intents.json   # Merged intent embeddings
-│   └── vendor/            # Installed skill packages
-│       └── <vendor>/<pkg>/<skill>/
+│   └── author/            # Installed skill packages
+│       └── <author>/<pkg>/<skill>/
 │           ├── ontoskill.ttl
 │           └── intents.json   # Per-skill pre-computed embeddings
 ├── skills/                # Source skills
-│   └── vendor/            # Imported repositories
+│   └── author/            # Imported repositories
 └── state/                 # Lockfiles and metadata
     ├── registry.sources.json
     └── registry.lock.json
