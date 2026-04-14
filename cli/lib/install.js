@@ -192,12 +192,11 @@ async function installPackage(packageId, options = {}) {
 }
 
 async function downloadEmbeddingModel(manifestRef) {
-  // Resolve model files from registry root (index.json is parent of manifest)
-  // The model.onnx and tokenizer.json live at the registry root
+  // Model files live in the embeddings/ directory at the registry root
   const registryRoot = manifestRef.replace(/\/packages\/.*$/, "");
   const modelFiles = [
-    { name: "model.onnx", dest: path.join(EMBEDDINGS_DIR, "model.onnx") },
-    { name: "tokenizer.json", dest: path.join(EMBEDDINGS_DIR, "tokenizer.json") },
+    { name: "embeddings/model.onnx", dest: path.join(EMBEDDINGS_DIR, "model.onnx") },
+    { name: "embeddings/tokenizer.json", dest: path.join(EMBEDDINGS_DIR, "tokenizer.json") },
   ];
   for (const { name, dest } of modelFiles) {
     if (fs.existsSync(dest)) {
