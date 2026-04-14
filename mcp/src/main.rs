@@ -480,7 +480,8 @@ fn handle_tool_call(
         }
         "resolve_alias" => {
             let alias = required_string(&arguments, "alias")?;
-            json!(catalog.resolve_alias(&alias).map_err(public_error)?)
+            let skills = catalog.resolve_alias(&alias).map_err(public_error)?;
+            json!({ "alias": alias, "skills": skills })
         }
         _ => return Err(format!("Unknown tool: {tool_name}")),
     };
