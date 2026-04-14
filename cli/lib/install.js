@@ -136,6 +136,61 @@ async function installSkill(qualifiedId, options = {}) {
   log(`Installed skill ${qualifiedId}`);
 }
 
+async function installPackage(packageId, options = {}) {
+  const noEmbeddings = options.noEmbeddings || false;
+  const entries = await loadRegistryEntries();
+  const match = entries.find((e) => e.package.package_id === packageId);
+  if (!match) {
+    fail(`Package not found in configured registries: ${packageId}`);
+  }
+
+  const { manifestRef, manifest } = await loadPackageManifest(match);
+  const installRoot = path.join(ONTOLOGY_VENDOR_DIR, manifest.package_id);
+  await fsp.mkdir(installRoot, { recursive: true });
+
+  // Copy all skill modules
+  const modules = new Set([...(manifest.modules || []), ...(manifest.skills || []).map((s) => s.path)]);
+  for (const mod of modules) {
+    const sourceRef = resolveChildRefForInstall(manifestRef, mod);
+    await copyRefToFile(sourceRef, path.join(installRoot, mod));
+  }
+
+  // Download per-skill intents.json files
+  if (!noEmbeddings && manifest.embedding_files) {
+    for (const ef of manifest.embedding_files) {
+      const embRef = resolveChildRefForInstall(manifestRef, ef);
+      await copyRefToFile(embRef, path.join(installRoot, ef));
+    }
+  }
+
+  await fsp.writeFile(path.join(installRoot, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf-8");
+
+  // Download global embedding model files (once, cached)
+  if (!noEmbeddings) {
+    await downloadEmbeddingModel(manifestRef);
+  }
+
+  const lock = await loadRegistryLock();
+  lock.packages[manifest.package_id] = {
+    package_id: manifest.package_id,
+    version: manifest.version,
+    trust_tier: manifest.trust_tier || defaultTrustTier(),
+    installed_at: new Date().toISOString(),
+    skills: (manifest.skills || []).map((skill) => ({
+      skill_id: skill.id,
+      module_path: path.join(installRoot, skill.path),
+      aliases: skill.aliases || [],
+      enabled: skill.default_enabled !== false,
+      default_enabled: skill.default_enabled !== false,
+    })),
+  };
+  await saveRegistryLock(lock);
+  await rebuildIndexes();
+  await mergeEmbeddings();
+
+  log(`Installed ${manifest.package_id}: ${(manifest.skills || []).length} skill(s)`);
+}
+
 async function downloadEmbeddingModel(manifestRef) {
   // Resolve model files from registry root (index.json is parent of manifest)
   // The model.onnx and tokenizer.json live at the registry root

@@ -207,8 +207,6 @@ def export_skill_embeddings(
     ]
 
     # 3. Compute embeddings (L2-normalized for cosine similarity)
-    import numpy as np
-
     intent_strings = [item["intent"] for item in unique_intents]
     embeddings = model.encode(intent_strings, convert_to_numpy=True, normalize_embeddings=True)
 

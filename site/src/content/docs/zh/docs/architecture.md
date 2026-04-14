@@ -33,7 +33,7 @@ flowchart LR
 | **提取** | SKILL.md | ExtractedSkill | LLM 提取结构化知识 |
 | **安全** | ExtractedSkill | ExtractedSkill | 正则表达式 + LLM 审查威胁 |
 | **序列化** | ExtractedSkill | RDF Graph | Pydantic → RDF 三元组 |
-| **嵌入** | RDF Graph | Embeddings | 向量嵌入生成（可选）|
+| **嵌入** | RDF Graph | Embeddings | 向量嵌入生成（必需）|
 | **验证** | RDF Graph | ValidationResult | SHACL 形状检查有效性 |
 | **写入** | RDF Graph | .ttl 文件 | 带备份的原子写入 |
 

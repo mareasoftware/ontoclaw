@@ -53,11 +53,6 @@ def _extract_skill_metadata_from_ttl(ttl_path: Path) -> dict:
         if cat:
             metadata["category"] = str(cat)
 
-        # version
-        ver = g.value(subject, OC.hasVersion)
-        if ver:
-            metadata["version"] = str(ver)
-
         # is_user_invocable
         inv = g.value(subject, OC.isUserInvocable)
         if inv is not None:
