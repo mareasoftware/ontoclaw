@@ -520,7 +520,9 @@ def install_single_skill(
         if manifest_dir:
             src = manifest_dir / module_rel
         else:
-            module_url = urljoin(manifest_ref + "/", module_rel)
+            # Build URL from manifest's parent directory, not from the JSON file itself
+            base_url = manifest_ref[:manifest_ref.rfind("/")] + "/"
+            module_url = urljoin(base_url, module_rel)
             dest = install_root / module_rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             try:
