@@ -789,14 +789,7 @@ impl Catalog {
             differentia: scalar.optional_literal("differentia"),
             intents: self.list_literal_values(&skill_uri, "oc:resolvesIntent")?,
             requirements: self.get_requirements_for_uri(&skill_uri)?,
-            depends_on: {
-                let mut deps = self.get_related_skill_ids(&skill_uri, "oc:dependsOnSkill")?;
-                if deps.is_empty() {
-                    // Backward compat: pre-0.11 TTLs used oc:dependsOn
-                    deps = self.get_related_skill_ids(&skill_uri, "oc:dependsOn")?;
-                }
-                deps
-            },
+            depends_on: self.get_related_skill_ids(&skill_uri, "oc:dependsOnSkill")?,
             extends: self.get_related_skill_ids(&skill_uri, "oc:extends")?,
             contradicts: self.get_related_skill_ids(&skill_uri, "oc:contradicts")?,
             requires_state: self.get_related_state_values(&skill_uri, "oc:requiresState")?,
