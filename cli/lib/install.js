@@ -97,7 +97,7 @@ async function installSkill(qualifiedId, options = {}) {
 
   // Download global embedding model files (once, cached)
   if (!noEmbeddings) {
-    await downloadEmbeddingModel();
+    await downloadEmbeddingModel(manifestRef);
   }
 
   const lock = await loadRegistryLock();
@@ -167,7 +167,7 @@ async function installPackage(packageId, options = {}) {
 
   // Download global embedding model files (once, cached)
   if (!noEmbeddings) {
-    await downloadEmbeddingModel();
+    await downloadEmbeddingModel(manifestRef);
   }
 
   const lock = await loadRegistryLock();
@@ -191,26 +191,34 @@ async function installPackage(packageId, options = {}) {
   log(`Installed ${manifest.package_id}: ${(manifest.skills || []).length} skill(s)`);
 }
 
-async function downloadEmbeddingModel() {
-  // Download ONNX model + tokenizer from HuggingFace directly (~87MB, cached locally)
+async function downloadEmbeddingModel(manifestRef) {
+  // Model (~87MB) from HuggingFace, tokenizer from registry (695KB)
   const MODEL_REPO = "sentence-transformers/all-MiniLM-L6-v2";
-  const HF_BASE = `https://huggingface.co/${MODEL_REPO}/resolve/main`;
-  const modelFiles = [
-    { url: `${HF_BASE}/onnx/model.onnx`, dest: path.join(EMBEDDINGS_DIR, "model.onnx") },
-    { url: `${HF_BASE}/tokenizer.json`, dest: path.join(EMBEDDINGS_DIR, "tokenizer.json") },
-  ];
-  for (const { url, dest } of modelFiles) {
-    if (fs.existsSync(dest)) {
-      continue; // Already cached
-    }
+  const HF_MODEL_URL = `https://huggingface.co/${MODEL_REPO}/resolve/main/onnx/model.onnx`;
+  const registryRoot = manifestRef.replace(/\/packages\/.*$/, "");
+  const modelDest = path.join(EMBEDDINGS_DIR, "model.onnx");
+  const tokDest = path.join(EMBEDDINGS_DIR, "tokenizer.json");
+
+  // Download ONNX model from HuggingFace (cached, one-time ~87MB)
+  if (!fs.existsSync(modelDest)) {
     try {
-      const response = await fetch(url, { redirect: "follow" });
+      const response = await fetch(HF_MODEL_URL, { redirect: "follow" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const buffer = Buffer.from(await response.arrayBuffer());
-      await fsp.mkdir(path.dirname(dest), { recursive: true });
-      await fsp.writeFile(dest, buffer);
+      await fsp.mkdir(EMBEDDINGS_DIR, { recursive: true });
+      await fsp.writeFile(modelDest, buffer);
     } catch (_error) {
-      // Model files not available — semantic search will be unavailable
+      // Model not available — semantic search will be unavailable
+    }
+  }
+
+  // Download tokenizer from registry (small, reliable)
+  if (!fs.existsSync(tokDest)) {
+    try {
+      const ref = resolveChildRefForInstall(registryRoot, "embeddings/tokenizer.json");
+      await copyRefToFile(ref, tokDest);
+    } catch (_error) {
+      // Non-fatal
     }
   }
 }
