@@ -143,7 +143,7 @@ Search skills by semantic query, alias, or structured filters. The tool dispatch
 
 Results use **hybrid scoring** (cosine similarity x trust-tier quality multiplier) so higher-trust skills rank above community contributions even with slightly lower raw similarity.
 
-**Note:** Semantic search requires running `ontoskills export-embeddings` first. If embeddings are not available, the tool returns an error.
+**Note:** Semantic search requires embedding files. Install skills with embedding support (`ontoskills install <package>`) or run `ontoskills export-embeddings` for locally compiled skills. If embeddings are not available, the tool returns an error.
 
 #### Alias resolution
 

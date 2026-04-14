@@ -145,7 +145,7 @@ async function downloadEmbeddingModel(manifestRef) {
     { name: "tokenizer.json", dest: path.join(EMBEDDINGS_DIR, "tokenizer.json") },
   ];
   for (const { name, dest } of modelFiles) {
-    if (fsp.existsSync(dest)) {
+    if (fs.existsSync(dest)) {
       continue; // Already cached
     }
     try {

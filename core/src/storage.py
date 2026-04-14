@@ -556,7 +556,7 @@ def generate_package_manifest(
             "default_enabled": entry.get("default_enabled", True),
             "aliases": entry.get("aliases", []),
             "description": entry.get("description", ""),
-            "category": entry.get("category", ""),
+            "category": entry.get("category"),
             "intents": entry.get("intents", []),
             "depends_on_skills": entry.get("depends_on_skills", []),
         }
