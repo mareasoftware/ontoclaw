@@ -386,10 +386,14 @@ impl EmbeddingEngine {
             .map(|(intent, emb, skills)| {
                 let cosine = Self::cosine_similarity(&query_embedding, emb);
                 // Use the best multiplier among all skills for this intent
-                let multiplier = skills
-                    .iter()
-                    .map(|s| quality_multiplier(self.trust_tiers.get(s).map(|t| t.as_str()).unwrap_or("verified")))
-                    .fold(1.0f32, f32::max);
+                let multiplier = if skills.is_empty() {
+                    1.0 // neutral for intents with no associated skills
+                } else {
+                    skills
+                        .iter()
+                        .map(|s| quality_multiplier(self.trust_tiers.get(s).map(|t| t.as_str()).unwrap_or("verified")))
+                        .fold(0.0f32, f32::max)
+                };
                 let score = cosine * multiplier;
                 (score, intent.as_str(), skills)
             })

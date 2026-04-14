@@ -74,13 +74,12 @@ To install without generating embeddings:
 ontoskills install mareasw/office/xlsx --no-embeddings
 ```
 
-Install resolution supports three levels:
+Install resolution supports two levels:
 
 | Level | Example | Behavior |
 |-------|---------|----------|
 | Full | `mareasw/office/xlsx` | Installs the exact skill |
 | Package | `mareasw/office` | Installs all skills in the package |
-| Skill name | `xlsx` | Resolves the best match across stores |
 
 ### Enable / Disable
 

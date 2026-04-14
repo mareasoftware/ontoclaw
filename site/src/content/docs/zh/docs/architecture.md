@@ -9,8 +9,8 @@ sidebar:
 
 ```mermaid
 flowchart LR
-    MD["SKILL.md"] --> LLM["Claude"] --> PYD["Pydantic"] --> SEC["Security"] --> RDF["RDF"] --> EMBED["Embed"] --> SHACL["SHACL"]
-    SHACL -->|"PASS"| TTL["ontoskill.ttl"] --> MCP["OntoMCP"] <--> AGENT["Agent"]
+    MD["SKILL.md"] --> LLM["Claude"] --> PYD["Pydantic"] --> SEC["Security"] --> RDF["RDF"] --> SHACL["SHACL"]
+    SHACL -->|"PASS"| TTL["ontoskill.ttl"] --> EMBED["Embed"] --> MCP["OntoMCP"] <--> AGENT["Agent"]
     SHACL -->|"FAIL"| FAIL["❌ Block"]
 
     style MD fill:#6dc9ee,stroke:#2a2a3e,color:#0d0d14
@@ -33,9 +33,9 @@ flowchart LR
 | **提取** | SKILL.md | ExtractedSkill | LLM 提取结构化知识 |
 | **安全** | ExtractedSkill | ExtractedSkill | 正则表达式 + LLM 审查威胁 |
 | **序列化** | ExtractedSkill | RDF Graph | Pydantic → RDF 三元组 |
-| **嵌入** | RDF Graph | Embeddings | 向量嵌入生成（必需）|
 | **验证** | RDF Graph | ValidationResult | SHACL 形状检查有效性 |
 | **写入** | RDF Graph | .ttl 文件 | 带备份的原子写入 |
+| **嵌入** | .ttl 文件 | Embeddings | 向量嵌入生成（必需）|
 
 ---
 
