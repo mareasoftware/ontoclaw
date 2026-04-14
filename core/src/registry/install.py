@@ -64,7 +64,10 @@ def _extract_skill_metadata_from_ttl(ttl_path: Path) -> dict:
             metadata["is_user_invocable"] = str(inv).lower() in ("true", "1", "yes")
 
         # depends_on_skills (repeatable)
-        deps = [str(o).rsplit("#", 1)[-1].rsplit("_", 1)[-1] for o in g.objects(subject, OC.dependsOnSkill)]
+        deps = [
+            str(o).rsplit("#", 1)[-1].removeprefix("skill_").replace("_", "-")
+            for o in g.objects(subject, OC.dependsOnSkill)
+        ]
         if deps:
             metadata["depends_on_skills"] = deps
 
