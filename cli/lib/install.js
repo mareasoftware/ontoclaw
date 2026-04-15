@@ -21,6 +21,7 @@ const {
   commandExists,
   fail,
   log,
+  warn,
 } = require("./paths");
 
 const {
@@ -570,9 +571,9 @@ async function importSource(repoRef) {
   runCommand(ontocoreWrapper, ["compile", "-i", sourceDir, "-o", outputDir, "-y", "-f"], {
     env: {
       ...process.env,
-      ONTOCLAW_SKILLS_DIR: sourceDir,
-      ONTOCLAW_ONTOLOGY_ROOT: path.join(HOME_ROOT, "ontologies"),
-      ONTOCLAW_OUTPUT_DIR: outputDir
+      ONTOSKILLS_SKILLS_DIR: sourceDir,
+      ONTOSKILLS_ONTOLOGY_ROOT: path.join(HOME_ROOT, "ontologies"),
+      ONTOSKILLS_OUTPUT_DIR: outputDir
     }
   });
 

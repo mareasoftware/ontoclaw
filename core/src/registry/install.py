@@ -487,6 +487,7 @@ def install_single_skill(
     package_entry,
     skill_id: str,
     root: Path | None = None,
+    with_embeddings: bool = False,
 ) -> InstalledPackageState:
     """Install a single skill (and its sub-skills) from a package.
 
@@ -544,7 +545,7 @@ def install_single_skill(
 
     # Collect embedding files under the skill directory
     embedding_files_to_copy = []
-    if manifest.embedding_files:
+    if with_embeddings and manifest.embedding_files:
         for ef_rel in manifest.embedding_files:
             ef_path = Path(ef_rel)
             try:

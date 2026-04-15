@@ -49,14 +49,23 @@ def enabled_index_path(root: Path | None = None) -> Path:
     return system_dir(root) / "index.enabled.ttl"
 
 
+def state_dir(root: Path | None = None) -> Path:
+    """Get the state directory (sibling of ontology root).
+
+    Matches the JS CLI layout: ~/.ontoskills/state/
+    """
+    base = ontology_root() if root is None else Path(root).resolve()
+    return base.parent / "state"
+
+
 def registry_lock_path(root: Path | None = None) -> Path:
     """Get the path to the registry lock file."""
-    return system_dir(root) / "registry.lock.json"
+    return state_dir(root) / "registry.lock.json"
 
 
 def registry_sources_path(root: Path | None = None) -> Path:
     """Get the path to the registry sources configuration."""
-    return system_dir(root) / "registry.sources.json"
+    return state_dir(root) / "registry.sources.json"
 
 
 def ensure_registry_layout(root: Path | None = None) -> Path:
@@ -64,4 +73,5 @@ def ensure_registry_layout(root: Path | None = None) -> Path:
     base = ontology_root() if root is None else Path(root).resolve()
     base.mkdir(parents=True, exist_ok=True)
     system_dir(base).mkdir(parents=True, exist_ok=True)
+    state_dir(base).mkdir(parents=True, exist_ok=True)
     return base

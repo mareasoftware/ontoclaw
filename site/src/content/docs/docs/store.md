@@ -205,10 +205,10 @@ Then retry the import.
 
 ### "ONNX Runtime error"
 
-If you see errors about ONNX Runtime native libraries, set the library path to the **directory** containing the shared library:
+If you see errors about ONNX Runtime native libraries, set the path to the shared library file:
 
 ```bash
-export ORT_DYLIB_PATH=/path/to/onnxruntime/lib
+export ORT_DYLIB_PATH=/path/to/libonnxruntime.so
 ```
 
 This is only needed when built with `--features embeddings` for semantic search.

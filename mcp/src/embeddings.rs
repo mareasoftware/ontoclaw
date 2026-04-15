@@ -622,7 +622,7 @@ mod tests {
 
     #[test]
     fn test_embedding_engine_load_missing_files() {
-        let result = EmbeddingEngine::load(Path::new("/nonexistent"));
+        let result = EmbeddingEngine::load(Path::new("/nonexistent"), Path::new("/nonexistent"));
         assert!(result.is_err());
     }
 

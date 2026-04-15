@@ -119,7 +119,7 @@ def install_cmd(ctx, package_ref, ontology_root_arg, with_embeddings):
         if not matching:
             console.print(f"[red]Package '{package_id}' not found in configured registries.[/red]")
             raise SystemExit(1)
-        result = install_single_skill(matching[0], skill_id, root=root)
+        result = install_single_skill(matching[0], skill_id, root=root, with_embeddings=with_embeddings)
         console.print(f"[green]Installed skill {package_id}/{skill_id}[/green]")
         console.print(f"  Trust: {result.trust_tier}")
         return
