@@ -135,7 +135,7 @@ ontoskills export-embeddings --ontology-root ./ontoskills --output-dir ./embeddi
 ### 安装 + 合并 (JS CLI)
 
 ```bash
-ontoskills install mareasw/office/xlsx
+ontoskills install obra/superpowers/test-driven-development
 ```
 
 CLI 会：
@@ -146,7 +146,7 @@ CLI 会：
 使用 `--no-embeddings` 跳过嵌入：
 
 ```bash
-ontoskills install mareasw/office/xlsx --no-embeddings
+ontoskills install obra/superpowers/test-driven-development --no-embeddings
 ```
 
 ### MCP 工具：search（语义模式）
@@ -180,7 +180,7 @@ ontoskills install mareasw/office/xlsx --no-embeddings
 | 信任层级 | 乘数 | 效果 |
 |----------|------|------|
 | `local` | 1.2 | 提升本地编译技能 |
-| `trusted` | 1.2 | 提升官方/可信供应商技能 |
+| `trusted` | 1.2 | 提升官方/可信作者技能 |
 | `verified` | 1.0 | 中性（基线） |
 | `community` | 0.8 | 抑制社区贡献 |
 

@@ -96,7 +96,7 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
   "skills": [
     {
       "id": "pdf",
-      "qualified_id": "mareasw/office/pdf",
+      "qualified_id": "obra/superpowers/test-driven-development",
       "nature": "创建 PDF 文档的技能",
       "intents": ["create_pdf", "export_pdf"],
       "requires_state": ["oc:ContentReady"],
@@ -130,12 +130,12 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
     {
       "intent": "create_pdf",
       "score": 0.92,
-      "skills": ["mareasw/office/pdf", "mareasw/documents/pdf-generator"]
+      "skills": ["obra/superpowers/test-driven-development", "obra/superpowers/systematic-debugging"]
     },
     {
       "intent": "export_to_pdf",
       "score": 0.85,
-      "skills": ["mareasw/office/export"]
+      "skills": ["obra/superpowers/dispatching-parallel-agents"]
     }
   ]
 }
@@ -165,7 +165,7 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
   "skills": [
     {
       "id": "pdf",
-      "qualified_id": "mareasw/office/pdf",
+      "qualified_id": "obra/superpowers/test-driven-development",
       "nature": "创建 PDF 文档的技能",
       "intents": ["create_pdf", "export_pdf"]
     }
@@ -188,7 +188,7 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
 
 | 参数 | 类型 | 描述 |
 |------|------|------|
-| `skill_id` | string | **必需。** 短 id（`pdf`）或限定 id（`mareasw/office/pdf`）|
+| `skill_id` | string | **必需。** 短 id（`pdf`）或限定 id（`obra/superpowers/test-driven-development`）|
 | `include_inherited_knowledge` | boolean | 包含扩展技能的知识（默认 true）|
 
 **示例响应：**
@@ -196,7 +196,7 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
 ```json
 {
   "id": "pdf",
-  "qualified_id": "mareasw/office/pdf",
+  "qualified_id": "obra/superpowers/test-driven-development",
   "nature": "从内容创建 PDF 文档的技能",
   "genus": "DocumentGenerator",
   "differentia": "输出 PDF 格式",
@@ -411,7 +411,7 @@ ontoskills compile
 语义搜索模式需要预计算的嵌入。安装包含嵌入支持的技能：
 
 ```bash
-ontoskills install mareasw/office/xlsx
+ontoskills install obra/superpowers/test-driven-development
 ```
 
 如果安装后嵌入仍然未找到，重建索引：

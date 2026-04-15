@@ -32,16 +32,16 @@ ontoskills install mareasw/greeting/hello
 
 ```bash
 # 安装单个技能
-ontoskills install mareasw/office/xlsx
+ontoskills install obra/superpowers/test-driven-development
 
 # 安装整个包中的所有技能
-ontoskills install mareasw/office
+ontoskills install obra/superpowers
 
 # 安装某供应商的所有包
 ontoskills install mareasw
 ```
 
-示例：`mareasw/office/xlsx`
+示例：`obra/superpowers/test-driven-development`
 
 ### 第三方商店
 
@@ -76,22 +76,22 @@ ontoskills import-source https://github.com/user/skill-repo
 ### 安装
 
 ```bash
-ontoskills install mareasw/office/xlsx
+ontoskills install obra/superpowers/test-driven-development
 ```
 
 从商店下载已编译的 `.ttl` 并放入 `~/.ontoskills/ontologies/`。
 
-使用 `--no-embeddings` 跳过嵌入生成：
+使用 `--no-embeddings` 跳过下载语义搜索产物：
 
 ```bash
-ontoskills install mareasw/office/xlsx --no-embeddings
+ontoskills install obra/superpowers/test-driven-development --no-embeddings
 ```
 
 ### 启用 / 禁用
 
 ```bash
-ontoskills disable mareasw/office/xlsx
-ontoskills enable mareasw/office/xlsx
+ontoskills disable obra/superpowers/test-driven-development
+ontoskills enable obra/superpowers/test-driven-development
 ```
 
 技能安装后默认启用。使用 `disable` 可以从 OntoMCP 隐藏技能而不删除它。使用 `enable` 重新启用。
@@ -99,7 +99,7 @@ ontoskills enable mareasw/office/xlsx
 ### 更新
 
 ```bash
-ontoskills update mareasw/office/xlsx
+ontoskills update obra/superpowers/test-driven-development
 ```
 
 从商店获取最新版本。
@@ -107,7 +107,7 @@ ontoskills update mareasw/office/xlsx
 ### 移除
 
 ```bash
-ontoskills remove mareasw/office/xlsx
+ontoskills remove obra/superpowers/test-driven-development
 ```
 
 从本地存储删除包。
@@ -176,7 +176,7 @@ ontoskills rebuild-index
 如果技能被禁用了，重新启用它：
 
 ```bash
-ontoskills enable mareasw/office/xlsx
+ontoskills enable obra/superpowers/test-driven-development
 ontoskills rebuild-index
 ```
 
@@ -206,10 +206,10 @@ ontoskills rebuild-index
 export ORT_DYLIB_PATH=/path/to/onnxruntime/libonnxruntime.so
 ```
 
-或者使用 `--no-embeddings` 跳过嵌入生成：
+或者使用 `--no-embeddings` 跳过下载语义搜索产物：
 
 ```bash
-ontoskills install mareasw/office/xlsx --no-embeddings
+ontoskills install obra/superpowers/test-driven-development --no-embeddings
 ```
 
 ---

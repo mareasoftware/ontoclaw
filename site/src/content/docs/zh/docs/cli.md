@@ -87,16 +87,16 @@ ontoskills search "office document"
 
 ```bash
 ontoskills install mareasw/greeting/hello
-ontoskills install mareasw/office/xlsx
+ontoskills install obra/superpowers/test-driven-development
 ```
 
 包 ID 支持多级解析：
 
 | 级别 | 示例 | 安装内容 |
 |------|------|----------|
-| **供应商** | `mareasw` | 该供应商的所有包 |
-| **包** | `mareasw/office` | 该包中的所有技能 |
-| **技能** | `mareasw/office/xlsx` | 单个技能（带依赖检查）|
+| **作者** | `mareasw` | 该作者的所有包 |
+| **包** | `obra/superpowers` | 该包中的所有技能 |
+| **技能** | `obra/superpowers/test-driven-development` | 单个技能（带依赖检查）|
 
 | 标志 | 含义 |
 |------|------|
@@ -251,7 +251,7 @@ ontoskills security-audit
 ```bash
 ontoskills update mcp
 ontoskills update core
-ontoskills update mareasw/office/xlsx
+ontoskills update obra/superpowers/test-driven-development
 ```
 
 ### `rebuild-index`
