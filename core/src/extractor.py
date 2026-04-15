@@ -64,12 +64,18 @@ def resolve_package_id(skill_dir: Path, input_path: Path | None = None) -> str:
     """Resolve package ID from directory structure.
 
     The package_id is the path between input_path and skill_dir,
-    representing author/repo. Falls back to DEFAULT_SKILLS_AUTHOR
-    env var if skill is at root of input, and 'local' if unset.
+    representing author/package. Falls back to DEFAULT_SKILLS_AUTHOR
+    env var if skill is at root of input and no author can be derived,
+    and 'local' if unset.
 
     When input_path is provided, the path between input_path and skill_dir
-    is used to derive the package_id. When not provided, falls back
- to searching for package.json/toml (legacy behavior), then 'local'.
+    is used to derive the package_id. The function auto-detects whether
+    input_path is an author directory or a skills root:
+    - Author dir (e.g., .agents/skills/obra/): uses input_path.name as author
+    - Skills root (e.g., .agents/skills/): derives author from relative path
+
+    When input_path is not provided, falls back to searching for
+    package.json/toml (legacy behavior), then 'local'.
 
     Args:
         skill_dir: Path to the skill directory
@@ -86,20 +92,65 @@ def resolve_package_id(skill_dir: Path, input_path: Path | None = None) -> str:
     except ValueError:
         return _resolve_package_id_from_manifest(skill_dir)
 
-    # The input directory name is the author (e.g., "remotion-dev", "coinbase")
-    author_segment = _normalize_package_id_segment(input_path.resolve().name)
+    segments = tuple(p for p in rel.parts if p != '.')
 
-    # Intermediate path segments between author and skill dir
-    intermediate = rel.parts[:-1] if rel.parts and rel.parts[-1] != '.' else ()
+    if not segments:
+        # skill_dir == input_path
+        return os.environ.get('DEFAULT_SKILLS_AUTHOR', 'local')
 
-    if not intermediate:
-        # Skill is directly under author dir (e.g., claude-office-skills/apple-shortcuts-integration/)
-        # The author IS the author — no need for an extra prefix.
-        return author_segment
+    # Last segment is the skill directory name — exclude it from package path
+    path_parts = segments[:-1]
 
-    # Prepend author to intermediate segments
-    all_parts = (author_segment,) + tuple(_normalize_package_id_segment(p) for p in intermediate)
-    return "/".join(all_parts)
+    # Auto-detect: is input_path an author directory or a skills root?
+    # An author dir has direct child directories containing SKILL.md.
+    # A skills root has author subdirectories (no SKILL.md at depth 1).
+    if _is_author_dir(input_path):
+        # input_path is an author dir (batch mode or explicit author path)
+        # rel does NOT include the author — prepend it from input_path.name
+        author = _normalize_package_id_segment(input_path.resolve().name)
+        if path_parts:
+            return "/".join([author] + [_normalize_package_id_segment(p) for p in path_parts])
+        return author
+    else:
+        # input_path is a skills root — rel already includes author segment
+        if path_parts:
+            return "/".join(_normalize_package_id_segment(p) for p in path_parts)
+        # Skill directly under root with no package structure — use fallback
+        return os.environ.get('DEFAULT_SKILLS_AUTHOR', 'local')
+
+
+def _is_author_dir(path: Path) -> bool:
+    """Heuristic: is this path an author directory vs a skills root?
+
+    Detection strategy (checked in order):
+    1. Depth-1 check: if any direct child contains SKILL.md, children are
+       skills/packages and the parent is an author directory.
+    2. Multi-child check: if multiple children each contain SKILL.md files
+       at depth 2+, those children are likely authors (each grouping its
+       own packages) → the parent is a skills root, not an author dir.
+    3. Default to author dir — most paths passed to resolve_package_id
+       are author directories (batch mode recurses into each author).
+    """
+    try:
+        children_with_skills = 0
+        for child in path.iterdir():
+            if not child.is_dir() or child.name.startswith('.'):
+                continue
+            # Depth-1: child IS a skill → definitely an author dir
+            if (child / "SKILL.md").exists():
+                return True
+            # Count children that contain skills at any depth
+            if any(child.rglob("SKILL.md")):
+                children_with_skills += 1
+        # Multiple children each containing skills → they are authors,
+        # so input_path is a skills root (e.g., skills/obra/, skills/coinbase/)
+        if children_with_skills >= 2:
+            return False
+    except (PermissionError, OSError):
+        return False
+
+    # Default: treat as author dir
+    return True
 
 
 def _normalize_package_id_segment(segment: str) -> str:
