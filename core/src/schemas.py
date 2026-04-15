@@ -156,8 +156,9 @@ class ExtractedSkill(BaseModel):
                     )
                 normalized.append(f"{parts[0]}/{parts[1]}")
             else:
-                # 3+ segments: strip default author if first segment matches,
-                # otherwise take last two segments
+                # 3+ segments: normalize to package/skill format.
+                # If default author matches, strip it (obra/superpowers/tdd → superpowers/tdd).
+                # Otherwise take last two segments as package/skill.
                 if default_author and parts[0] == default_author:
                     parts = parts[1:]
                 if len(parts) == 1:
