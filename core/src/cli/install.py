@@ -64,7 +64,7 @@ def install_cmd(ctx, package_ref, ontology_root_arg, with_embeddings):
     """Install packages by reference.
 
     Supports author-level (anthropics), package-level (anthropics/financial-services-plugin),
-    and short names (impeccable). Skill-level refs are not supported for remote registries.
+    skill-level (anthropics/financial-services-plugin/budgeting), and short names (impeccable).
     """
     from . import setup_logging
     setup_logging(ctx.obj.get('verbose', False), ctx.obj.get('quiet', False))
@@ -81,7 +81,6 @@ def install_cmd(ctx, package_ref, ontology_root_arg, with_embeddings):
         AmbiguousRefError,
         AuthorTarget,
         PackageTarget,
-        SkillTarget,
     )
     from compiler.registry.models import RegistryIndex
 
@@ -109,15 +108,21 @@ def install_cmd(ctx, package_ref, ontology_root_arg, with_embeddings):
 
     index = RegistryIndex(packages=combined_packages)
 
-    # Skill-level refs (3+ segments) require manifest_base which is not
-    # available for remote-only indexes. Detect early with a clear message.
+    # Skill-level refs (3+ segments): split into package_id + skill_id
+    # and route to install_single_skill, which downloads the manifest
+    # from the remote URL directly.
     ref_parts = [part for part in package_ref.split("/") if part]
     if len(ref_parts) >= 3:
-        console.print(
-            "[red]Skill-level install references are not supported for remote registries. "
-            "Use an author ref ('author') or package ref ('author/package') instead.[/red]"
-        )
-        raise SystemExit(1)
+        package_id = "/".join(ref_parts[:2])
+        skill_id = "/".join(ref_parts[2:])
+        matching = [p for p in index.packages if p.package_id == package_id]
+        if not matching:
+            console.print(f"[red]Package '{package_id}' not found in configured registries.[/red]")
+            raise SystemExit(1)
+        result = install_single_skill(matching[0], skill_id, root=root)
+        console.print(f"[green]Installed skill {package_id}/{skill_id}[/green]")
+        console.print(f"  Trust: {result.trust_tier}")
+        return
 
     try:
         target = resolve_install_ref(package_ref, index)
@@ -136,10 +141,6 @@ def install_cmd(ctx, package_ref, ontology_root_arg, with_embeddings):
     elif isinstance(target, PackageTarget):
         package = install_package_from_sources(target.package.package_id, root=root, with_embeddings=with_embeddings)
         console.print(f"[green]Installed {package.package_id}: {len(package.skills)} skill(s)[/green]")
-
-    # NOTE: SkillTarget is not reachable here because the 3+ segment guard
-    # above exits early for remote registries. When local manifest_base
-    # becomes available, remove the guard and add skill-level handling.
 
 
 @click.command('enable')
