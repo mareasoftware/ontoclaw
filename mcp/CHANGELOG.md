@@ -4,7 +4,28 @@ All notable changes to ontomcp (Rust MCP Server) will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.11.0] - 2026-04-14
+## [0.11.0] - 2026-04-15
+
+### Added
+
+- **BM25 keyword search engine** — In-memory BM25 index built from Catalog data (intents, aliases, nature) at startup. Always available, no additional files on disk
+- **Hybrid search dispatch** — Semantic search is preferred when embeddings are available (ONNX). BM25 is used as fallback when embeddings are not installed or return no results
+- **Search response `mode` field** — Responses include `"mode": "bm25"` or `"mode": "semantic"` to indicate which engine produced the results
+- **`aliases` in SkillSummary** — `list_skills()` and `find_skills_by_intent()` now include skill aliases
+
+### Changed
+
+- **BM25 is the default search** — The `search` tool with `query` parameter now uses BM25 by default instead of requiring ONNX embeddings
+- **Embeddings are optional** — `ort`, `tokenizers`, `ndarray` are behind `embeddings` feature flag in Cargo.toml. Default build has zero ML dependencies
+- **`sentence-transformers` is optional** — Moved from mandatory to `[project.optional-dependencies] embeddings` in OntoCore's pyproject.toml
+- **Compile without embeddings** — `ontocore compile` skips embedding generation when `sentence-transformers` is not installed, prints a warning instead of failing
+- **Trust tier scoring** — BM25 results use the same quality multipliers as the embedding engine (official: 1.2, local/verified: 1.0, community: 0.8)
+
+### Removed
+
+- **Mandatory ONNX Runtime** — No longer required for default installation. Only needed when `--features embeddings` is enabled
+
+## [0.10.0] - 2026-04-14
 
 ### Added
 

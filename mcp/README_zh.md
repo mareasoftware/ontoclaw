@@ -44,11 +44,14 @@ MCP 服务器专注于以下功能：
 ```mermaid
 flowchart LR
     CLIENT["MCP 客户端<br/>━━━━━━━━━━<br/>Claude Code<br/>stdio 传输"] -->|"tools/call"| TOOLS["MCP 工具<br/>━━━━━━━━━━<br/>4 个工具<br/>搜索、上下文、规划、规则"]
+    TOOLS -->|"BM25 搜索"| BM25["BM25 引擎<br/>━━━━━━━━━━<br/>内存<br/>关键词搜索"]
     TOOLS -->|"SPARQL"| SPARQL["oxigraph<br/>━━━━━━━━━━<br/>SPARQL 1.1 引擎<br/>内存存储"]
-    SPARQL -->|"查询"| GRAPH["RDF 图<br/>━━━━━━━━━━<br/>已加载 .ttl 文件<br/>OntoSkills 目录"]
+    BM25 -->|"构建自"| GRAPH["RDF 图<br/>━━━━━━━━━━<br/>已加载 .ttl 文件<br/>OntoSkills 目录"]
+    SPARQL -->|"查询"| GRAPH
 
     style CLIENT fill:#6dc9ee,stroke:#2a2a3e,color:#0d0d14
     style TOOLS fill:#92eff4,stroke:#2a2a3e,color:#0d0d14
+    style BM25 fill:#abf9cc,stroke:#2a2a3e,color:#0d0d14
     style SPARQL fill:#abf9cc,stroke:#2a2a3e,color:#0d0d14
     style GRAPH fill:#9763e1,stroke:#2a2a3e,color:#0d0f5
 ```
@@ -68,18 +71,20 @@ flowchart LR
 
 | 工具 | 用途 |
 |------|------|
-| `search` | 通过语义查询、别名或结构化过滤器搜索技能。按参数分派：`query` → 语义意图搜索，`alias` → 别名解析，否则 → 结构化技能搜索 |
+| `search` | 通过关键词查询、别名或结构化过滤器搜索技能。按参数分派：`query` → BM25 关键词搜索（可选语义回退），`alias` → 别名解析，否则 → 结构化技能搜索 |
 | `get_skill_context` | 返回技能的完整执行上下文，包括负载和知识节点 |
 | `evaluate_execution_plan` | 评估适用性并为目标意图或技能生成执行计划 |
 | `query_epistemic_rules` | 通过引导过滤器查询本体中的规范化知识节点 |
 
 ---
 
-## 语义意图发现
+## 意图发现
 
-当通过 `ontocore export-embeddings` 导出嵌入时，MCP 服务器提供：
+OntoMCP 提供两种搜索引擎用于技能发现：
 
-### MCP 工具：`search`（语义模式）
+### 默认：BM25 关键词搜索
+
+当嵌入不可用时，使用 BM25 关键词搜索。启动时从技能意图、别名和描述构建内存 BM25 索引。
 
 ```json
 {
@@ -91,29 +96,35 @@ flowchart LR
 }
 ```
 
-返回匹配的意图及混合分数：
+返回匹配的技能及 BM25 分数：
 ```json
 {
+  "mode": "bm25",
   "query": "创建 PDF 文档",
-  "matches": [
-    {"intent": "create_pdf", "score": 0.92, "skills": ["pdf"]},
-    {"intent": "export_document", "score": 0.78, "skills": ["pdf", "document-export"]}
+  "results": [
+    {
+      "skill_id": "pdf",
+      "qualified_id": "marea/office/pdf",
+      "score": 0.87,
+      "matched_by": "keyword",
+      "intents": ["create pdf document", "export to pdf"],
+      "aliases": ["pdf-generator"],
+      "trust_tier": "official"
+    }
   ]
 }
 ```
 
-### 混合评分
+### 语义搜索（ONNX 嵌入）— 可用时优先使用
 
-搜索结果使用**混合评分** — 余弦相似度乘以信任层级的质量乘数：
+使用 `--features embeddings` 编译且嵌入文件存在时，语义搜索优先于 BM25 — 对于大量技能目录中的细微查询，语义搜索提供更准确的结果。
 
-| 信任层级 | 乘数 | 效果 |
-|----------|------|------|
-| `official` | 1.2 | 提升官方作者技能（anthropics、coinbase、obra 等） |
-| `local` | 1.0 | 本地编译技能（与 verified 相同） |
-| `verified` | 1.0 | 中性（基线） |
-| `community` | 0.8 | 抑制社区贡献 |
+```bash
+# 构建时启用嵌入支持
+cargo build --features embeddings
+```
 
-这确保了余弦相似度为 0.80 的官方技能（混合分：0.96）排名高于余弦相似度为 0.90 的社区技能（混合分：0.72）。
+响应包含 `"mode": "semantic"` 及意图级别的匹配结果。如果嵌入失败或无结果，则回退到 BM25。
 
 ### MCP 资源：`ontology://schema`
 
@@ -132,9 +143,9 @@ flowchart LR
 | 指标 | 目标 |
 |------|------|
 | 模式资源大小 | < 4KB |
-| search 延迟（语义） | < 50ms |
-| ONNX 模型大小 | < 50MB |
-| 内存占用 | < 100MB |
+| search 延迟（BM25） | < 5ms |
+| search 延迟（语义，可选） | < 50ms |
+| 内存占用（无嵌入） | < 50MB |
 
 `skill_id` 字段接受：
 - 短 ID，如 `xlsx`
@@ -179,7 +190,7 @@ flowchart LR
 ONTOMCP_ONTOLOGY_ROOT=/path/to/ontology-root
 ```
 
-**ONNX Runtime**（用于语义意图搜索）：
+**ONNX Runtime**（可选，用于大规模语义搜索）：
 ```bash
 ORT_DYLIB_PATH=/path/to/onnxruntime/lib
 ```
