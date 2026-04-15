@@ -257,7 +257,7 @@ See [Skill Authoring](/docs/authoring/) for practical guidance on writing skills
 | `ANTHROPIC_API_KEY` | Anthropic API key | Required |
 | `ANTHROPIC_BASE_URL` | API base URL | `https://api.anthropic.com` |
 | `SECURITY_MODEL` | Model for security review | `claude-opus-4-6` |
-| `DEFAULT_SKILLS_AUTHOR` | Default author for skills | `unknown` |
+| `DEFAULT_SKILLS_AUTHOR` | Default author for skills with no package structure | `local` |
 
 ---
 

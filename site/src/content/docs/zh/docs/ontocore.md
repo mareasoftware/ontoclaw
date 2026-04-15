@@ -257,7 +257,7 @@ OntoCore 是**缓存感知**的：
 | `ANTHROPIC_API_KEY` | Anthropic API key | 必需 |
 | `ANTHROPIC_BASE_URL` | API 基础 URL | `https://api.anthropic.com` |
 | `SECURITY_MODEL` | 安全审查模型 | `claude-opus-4-6` |
-| `DEFAULT_SKILLS_AUTHOR` | 技能的默认作者 | `unknown` |
+| `DEFAULT_SKILLS_AUTHOR` | 无包结构的技能的默认作者 | `local` |
 
 ---
 
