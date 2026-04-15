@@ -12,6 +12,8 @@ use std::collections::HashMap;
 use std::path::Path;
 use tokenizers::Tokenizer;
 
+use crate::catalog::quality_multiplier;
+
 /// Pre-computed intent embedding entry.
 #[derive(Debug, Deserialize)]
 struct IntentEntry {
@@ -38,19 +40,6 @@ pub struct IntentMatch {
     pub score: f32,
     /// Skills that resolve this intent
     pub skills: Vec<String>,
-}
-
-/// Quality multiplier based on trust tier.
-///
-/// Boosts higher-trust skills and dampens community contributions.
-fn quality_multiplier(trust_tier: &str) -> f32 {
-    match trust_tier {
-        "official" => 1.2,
-        "local" => 1.0,
-        "verified" => 1.0,
-        "community" => 0.8,
-        _ => 1.0,
-    }
 }
 
 /// Maximum query length in bytes before safety truncation.

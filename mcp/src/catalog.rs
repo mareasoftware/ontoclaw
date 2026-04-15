@@ -1898,6 +1898,19 @@ fn eq_ignore_case(left: &str, right: &str) -> bool {
     left.eq_ignore_ascii_case(right)
 }
 
+/// Quality multiplier based on trust tier for search scoring.
+///
+/// Shared between BM25 and embedding engines to keep tiers consistent.
+pub fn quality_multiplier(trust_tier: &str) -> f32 {
+    match trust_tier {
+        "official" => 1.2,
+        "local" => 1.0,
+        "verified" => 1.0,
+        "community" => 0.8,
+        _ => 1.0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

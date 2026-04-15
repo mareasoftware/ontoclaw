@@ -9,7 +9,7 @@ use bm25::{Document, Language, SearchEngineBuilder};
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::catalog::{Catalog, CatalogError, SkillSummary};
+use crate::catalog::{quality_multiplier, Catalog, CatalogError, SkillSummary};
 
 /// A single BM25 search result.
 #[derive(Debug, Serialize, Clone)]
@@ -28,17 +28,6 @@ pub struct Bm25Match {
     pub aliases: Vec<String>,
     /// Trust tier
     pub trust_tier: String,
-}
-
-/// Quality multiplier based on trust tier.
-fn quality_multiplier(trust_tier: &str) -> f32 {
-    match trust_tier {
-        "official" => 1.2,
-        "local" => 1.0,
-        "verified" => 1.0,
-        "community" => 0.8,
-        _ => 1.0,
-    }
 }
 
 /// In-memory BM25 search engine for skill discovery.
@@ -162,6 +151,7 @@ mod tests {
 
     #[test]
     fn test_quality_multiplier_tiers() {
+        use crate::catalog::quality_multiplier;
         assert!((quality_multiplier("official") - 1.2).abs() < 0.001);
         assert!((quality_multiplier("local") - 1.0).abs() < 0.001);
         assert!((quality_multiplier("verified") - 1.0).abs() < 0.001);
