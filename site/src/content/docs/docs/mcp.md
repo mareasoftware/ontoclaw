@@ -61,7 +61,7 @@ OntoMCP exposes **4 tools** for skill discovery and reasoning.
 
 Search skills by semantic query, alias, or structured filters. The tool dispatches based on the parameters provided:
 
-- **`query`** provided → semantic intent search (requires embeddings)
+- **`query`** provided → BM25 keyword search (with optional semantic fallback for large catalogs)
 - **`alias`** provided → alias resolution
 - Otherwise → structured skill search with filters
 
@@ -109,6 +109,8 @@ Search skills by semantic query, alias, or structured filters. The tool dispatch
 
 #### Semantic intent search
 
+When the `query` parameter is provided, the search tool uses **BM25** as the default search engine. BM25 is an in-memory keyword ranking algorithm that operates directly on Catalog data — it is always available and requires no additional dependencies.
+
 ```json
 {
   "query": "create a pdf document",
@@ -121,29 +123,51 @@ Search skills by semantic query, alias, or structured filters. The tool dispatch
 | `query` | string | **Required.** Natural language query |
 | `top_k` | integer | Number of results (default 5) |
 
-**Example response:**
+**BM25 response example** (default mode):
 
 ```json
 {
   "query": "create a pdf document",
-  "matches": [
+  "mode": "bm25",
+  "results": [
     {
-      "intent": "create_pdf",
+      "skill_id": "pdf",
+      "qualified_id": "obra/superpowers/test-driven-development",
       "score": 0.92,
-      "skills": ["obra/superpowers/test-driven-development", "obra/superpowers/systematic-debugging"]
-    },
-    {
-      "intent": "export_to_pdf",
-      "score": 0.85,
-      "skills": ["obra/superpowers/dispatching-parallel-agents"]
+      "matched_by": "intent",
+      "intents": ["create_pdf", "export_to_pdf"],
+      "aliases": ["pdf"],
+      "trust_tier": "core"
     }
   ]
 }
 ```
 
-Results use **hybrid scoring** (cosine similarity x trust-tier quality multiplier) so higher-trust skills rank above community contributions even with slightly lower raw similarity.
+**Semantic fallback** (optional, for large catalogs):
 
-**Note:** Semantic search requires embedding files. Install skills with embedding support (`ontoskills install <package>`) or run `ontoskills export-embeddings` for locally compiled skills. If embeddings are not available, the tool returns an error.
+Semantic search is an optional enhancement for large skill catalogs where keyword matching alone may not capture nuanced queries. It requires compiling with `--features embeddings` and having embedding files present (`ontoskills export-embeddings`).
+
+When BM25 confidence is below the fallback threshold (0.4) and embeddings are available, the server automatically falls back to semantic search:
+
+```json
+{
+  "query": "generate a report with charts and export it",
+  "mode": "semantic",
+  "results": [
+    {
+      "skill_id": "pdf",
+      "qualified_id": "obra/superpowers/test-driven-development",
+      "score": 0.88,
+      "matched_by": "embedding_similarity",
+      "intents": ["create_pdf", "export_to_pdf"],
+      "aliases": ["pdf"],
+      "trust_tier": "core"
+    }
+  ]
+}
+```
+
+Semantic results use **hybrid scoring** (cosine similarity x trust-tier quality multiplier) so higher-trust skills rank above community contributions even with slightly lower raw similarity.
 
 #### Alias resolution
 
@@ -344,12 +368,20 @@ Query normalized knowledge nodes with guided filters.
 ┌─────────────────────────────────────────────────────────────┐
 │                       OntoMCP                                │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Catalog   │  │  Embeddings │  │   SPARQL Engine     │  │
-│  │   (Rust)    │  │ (ONNX/Intents)│  │   (Oxigraph)        │  │
+│  │   Catalog   │  │ BM25 Engine │  │   SPARQL Engine     │  │
+│  │   (Rust)    │  │  (in-memory)│  │   (Oxigraph)        │  │
 │  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘  │
-└─────────┼────────────────┼───────────────────┼─────────────┘
-          │                │                   │
-          ▼                ▼                   ▼
+│         └─────────┐      │                    │             │
+│                   ▼      │                    │             │
+│          ┌─────────────┐ │                    │             │
+│          │  Embeddings │ │                    │             │
+│          │(ONNX/Intents│ │                    │             │
+│          │  optional,  │ │                    │             │
+│          │large catalogs│ │                   │             │
+│          └─────────────┘ │                    │             │
+└─────────────────────────┼────────────────────┼─────────────┘
+                          │                    │
+                          ▼                    ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    ontologies/                               │
 │  ├── index.ttl                                              │
@@ -408,22 +440,18 @@ ontoskills compile
 
 ### "Embeddings not available"
 
-The semantic search mode requires pre-computed embeddings. Install skills that include embedding support:
+Search always works with **BM25** (keyword search). Semantic search is optional and only available when compiled with `--features embeddings` and embedding files are present.
 
-```bash
-ontoskills install obra/superpowers/test-driven-development
-```
-
-If embeddings are still not found after installing, rebuild:
-
-```bash
-ontoskills rebuild-index
-```
-
-If the ONNX Runtime shared library is missing, set `ORT_DYLIB_PATH`:
+If you want semantic search for large catalogs and the ONNX Runtime shared library is missing, set `ORT_DYLIB_PATH`:
 
 ```bash
 export ORT_DYLIB_PATH=/path/to/libonnxruntime.so
+```
+
+To generate embedding files:
+
+```bash
+ontoskills export-embeddings
 ```
 
 ### "Server not initialized"
@@ -446,4 +474,4 @@ Check logs for errors:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `ONTOMCP_ONTOLOGY_ROOT` | Ontology directory | `~/.ontoskills/ontologies` |
-| `ORT_DYLIB_PATH` | Path to ONNX Runtime shared library | Auto-detected |
+| `ORT_DYLIB_PATH` | Path to ONNX Runtime shared library (optional — only for semantic search on large catalogs) | Auto-detected |

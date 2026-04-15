@@ -10,7 +10,7 @@ sidebar:
 ```mermaid
 flowchart LR
     MD["SKILL.md"] --> LLM["Claude"] --> PYD["Pydantic"] --> SEC["Security"] --> RDF["RDF"] --> SHACL["SHACL"]
-    SHACL -->|"PASS"| TTL["ontoskill.ttl"] --> EMBED["Embed"] --> MCP["OntoMCP"] <--> AGENT["Agent"]
+    SHACL -->|"PASS"| TTL["ontoskill.ttl"] --> EMBED["Embed (opt)"] --> MCP["OntoMCP"] <--> AGENT["Agent"]
     SHACL -->|"FAIL"| FAIL["❌ Block"]
 
     style MD fill:#6dc9ee,stroke:#2a2a3e,color:#0d0d14
@@ -35,7 +35,7 @@ flowchart LR
 | **Serialize** | ExtractedSkill | RDF Graph | Pydantic → RDF triples |
 | **Validate** | RDF Graph | ValidationResult | SHACL shapes check validity |
 | **Write** | RDF Graph | .ttl file | Atomic write with backup |
-| **Embed** | .ttl file | Embeddings | Per-skill vector embeddings |
+| **Embed** | .ttl file | Embeddings | Per-skill vector embeddings (optional, requires ontocore[embeddings]) |
 
 ---
 

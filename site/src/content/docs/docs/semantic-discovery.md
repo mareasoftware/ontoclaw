@@ -1,25 +1,57 @@
 ---
-title: Semantic Intent Discovery
-description: Find skills by natural language intent with pre-computed per-skill embeddings
+title: Intent Discovery
+description: Find skills by natural language intent using BM25 keyword search, with optional semantic embeddings for large catalogs
 sidebar:
   order: 8
 ---
 
 ## Overview
 
-Semantic Intent Discovery enables LLM agents to find skills by natural language intent without knowing exact intent strings. This breaks the O(1) query promise — agents can now discover how to query the ontology.
+Intent Discovery enables LLM agents to find skills by natural language intent without knowing exact intent strings. BM25 keyword search is the default and is always available. Semantic embeddings are optional and recommended only for large skill catalogs where keyword matching may miss relevant results.
 
-**Solution:** Convention (C) + Schema Summary (A) + Semantic Discovery
+**Solution:** Convention (C) + Schema Summary (A) + Intent Discovery
 
 | Component | Purpose |
 |-----------|---------|
 | **Convention** | Predictable naming (`verb_noun` for intents, `camelCase` for properties) |
 | **Schema Summary** | MCP Resource `ontology://schema` — 2KB compact schema |
-| **search** (semantic mode) | MCP Tool — semantic matching via pre-computed embeddings |
+| **search** (BM25 mode) | MCP Tool — fast keyword matching via in-memory BM25 index |
+| **search** (semantic mode) | MCP Tool — optional semantic matching via pre-computed embeddings |
 
 ---
 
-## Architecture
+## BM25 Keyword Search
+
+BM25 is the default search method and is always available. It requires no external dependencies or model downloads — the index is built in-memory from Catalog data at MCP server startup.
+
+- **Always available**: no extra dependencies, no model downloads, no compile-time changes
+- **Built at startup**: the BM25 index is constructed from the Catalog data loaded into memory
+- **Search fields**: skill intents, aliases, and nature descriptions
+- **Tokenization**: English stemming and stop words via the `bm25` crate
+- **Response shape**: results include `"mode": "bm25"` to identify the search method
+
+```json
+{
+  "query": "create a pdf document",
+  "mode": "bm25",
+  "matches": [
+    {"intent": "create_pdf", "score": 12.4, "skills": ["pdf"]},
+    {"intent": "export_document", "score": 8.1, "skills": ["pdf", "document-export"]}
+  ]
+}
+```
+
+---
+
+## Semantic Search (Optional)
+
+Semantic search is only needed for **large skill catalogs** where keyword matching may not capture the user's intent. It uses pre-computed embeddings and ONNX inference for semantic similarity matching.
+
+**Requirements:**
+
+- Compile time: `ontocore[embeddings]` (Python extra)
+- Rust MCP build: `--features embeddings`
+- Falls back from BM25 when semantic confidence is low
 
 Embeddings are **pre-computed per-skill at compile time** and merged at install time. The MCP server performs ONNX inference only for the query, matching it against pre-loaded intent vectors.
 
@@ -76,13 +108,13 @@ Embeddings are **pre-computed per-skill at compile time** and merged at install 
 
 ## Per-skill embeddings
 
-Every skill **must** declare at least one intent. During compilation, `ontocore compile` generates an `intents.json` next to each `ontoskill.ttl`:
+When embeddings are enabled, every skill that declares intents gets an `intents.json` generated next to its `ontoskill.ttl` during compilation. Skills without declared intents simply skip embedding generation — compilation does not fail.
 
 ```text
 ontoskills/
 └── <skill>/
     ├── ontoskill.ttl
-    └── intents.json     # MANDATORY — compilation fails without intents
+    └── intents.json     # Optional (when embeddings enabled) — skipped if no intents
 ```
 
 **intents.json format:**
@@ -101,12 +133,7 @@ ontoskills/
 }
 ```
 
-If a skill has zero declared intents, compilation **fails** with:
-
-```text
-Skill 'my-skill' has no declared intents. Every skill must declare at
-least one intent for semantic search.
-```
+If a skill has zero declared intents and embeddings are enabled, the compiler skips embedding generation for that skill and logs a warning.
 
 ---
 
@@ -118,10 +145,10 @@ least one intent for semantic search.
 ontocore compile -i skills/ -o ontoskills/
 ```
 
-This produces both `ontoskill.ttl` and `intents.json` per skill. Requires `sentence-transformers`:
+This produces `ontoskill.ttl` per skill. By default, no embedding dependencies are required. To generate per-skill embeddings, install the embeddings extra:
 
 ```bash
-pip install sentence-transformers
+pip install ontocore[embeddings]
 ```
 
 ### Export ONNX model (one-time)
@@ -228,9 +255,10 @@ A compact JSON schema describing available classes and properties:
 | Metric | Target | Verification |
 |--------|--------|--------------|
 | Schema resource size | < 4KB | `test_schema_size` |
+| search latency (BM25) | < 5ms | Manual benchmark |
 | search latency (semantic) | < 50ms | Manual benchmark |
 | ONNX model size | ~90MB | Check file size |
-| Memory footprint | < 200MB | Monitor with `top` |
+| Memory footprint (without embeddings) | < 50MB | Monitor with `top` |
 
 ---
 
@@ -273,11 +301,12 @@ cli/
 
 ## Dependencies
 
-### Python (core/) — mandatory for compile
+### Python (core/) — compile
 
 ```toml
-# pyproject.toml — required dependency
-sentence-transformers>=2.2.0
+# pyproject.toml — optional dependency (embedding generation)
+[project.optional-dependencies]
+embeddings = ["sentence-transformers>=2.2.0"]
 
 # pyproject.toml — optional (for export-embeddings only)
 optimum>=1.12.0
@@ -288,15 +317,23 @@ onnxruntime>=1.16.0
 ### Rust (mcp/)
 
 ```toml
-ort = { version = "2.0.0-rc.12", features = ["load-dynamic"] }
-tokenizers = "0.19"
-ndarray = "0.17"
+# Mandatory — always included
+bm25 = "1"
 anyhow = "1.0"
+
+# Optional — behind [features] embeddings
+[features]
+embeddings = ["ort", "tokenizers", "ndarray"]
+
+[dependencies]
+ort = { version = "2.0.0-rc.12", features = ["load-dynamic"], optional = true }
+tokenizers = { version = "0.19", optional = true }
+ndarray = { version = "0.17", optional = true }
 ```
 
-### Runtime requirement
+### Runtime requirement (optional)
 
-The ONNX Runtime shared library must be available. The MCP server uses `ort` with `load-dynamic`, which looks for `libonnxruntime.so` at runtime. Set `ORT_DYLIB_PATH` if needed:
+When semantic search is enabled (`--features embeddings`), the ONNX Runtime shared library must be available. The MCP server uses `ort` with `load-dynamic`, which looks for `libonnxruntime.so` at runtime. Set `ORT_DYLIB_PATH` if needed:
 
 ```bash
 export ORT_DYLIB_PATH=/path/to/libonnxruntime.so
