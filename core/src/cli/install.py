@@ -95,7 +95,12 @@ def install_cmd(ctx, package_ref, ontology_root_arg, with_embeddings):
         try:
             idx = load_registry_index(source.index_url)
             combined_packages.extend(idx.packages)
-        except Exception:
+        except Exception as e:
+            source_name = getattr(source, "name", None) or source.index_url
+            console.print(
+                f"[yellow]Warning:[/yellow] Failed to load registry source "
+                f"'{source_name}' ({source.index_url}): {e}"
+            )
             continue
 
     if not combined_packages:
