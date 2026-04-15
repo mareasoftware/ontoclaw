@@ -489,6 +489,7 @@ def create_core_ontology(output_path: Optional[Path] = None) -> Graph:
 
     # oc:dependsOnSkill (ObjectProperty) — unambiguous skill-to-skill dependency
     g.add((oc.dependsOnSkill, RDF.type, OWL.ObjectProperty))
+    g.add((oc.dependsOnSkill, RDF.type, OWL.AsymmetricProperty))
     g.add((oc.dependsOnSkill, RDFS.domain, oc.Skill))
     g.add((oc.dependsOnSkill, RDFS.range, oc.Skill))
     g.add((oc.dependsOnSkill, RDFS.label, Literal("depends on skill")))

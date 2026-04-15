@@ -7,7 +7,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://ontoskills.sh/ontology> a owl:Ontology ;
-    dcterms:created "2026-04-15T17:26:56.646830" ;
+    dcterms:created "2026-04-15T21:55:57.484615" ;
     dcterms:description "Core TBox ontology for skill state transitions and execution" ;
     dcterms:title "OntoSkills Core Ontology" .
 
@@ -211,7 +211,8 @@ oc:dependsOn a owl:AsymmetricProperty,
     rdfs:range oc:Skill ;
     owl:inverseOf oc:enables .
 
-oc:dependsOnSkill a owl:ObjectProperty ;
+oc:dependsOnSkill a owl:AsymmetricProperty,
+        owl:ObjectProperty ;
     rdfs:label "depends on skill" ;
     rdfs:comment "Declares a dependency on another skill (skill-to-skill prerequisite)" ;
     rdfs:domain oc:Skill ;
