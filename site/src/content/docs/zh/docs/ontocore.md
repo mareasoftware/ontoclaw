@@ -29,7 +29,11 @@ ontoskills install core
 系统要求：
 - **Python** 3.10+
 - **Anthropic API key**（设置 `ANTHROPIC_API_KEY` 环境变量）
-- **sentence-transformers**（必需 — 使用 `pip install sentence-transformers` 安装）
+
+> **可选：** 安装 `ontocore[embeddings]` 以启用每技能嵌入生成，用于语义搜索（大型技能目录推荐）：
+> ```bash
+> pip install ontocore[embeddings]
+> ```
 
 ---
 
@@ -156,7 +160,7 @@ ontoskills/
 │   └── index.enabled.ttl    # 为 MCP 启用的技能
 └── <skill-path>/
     ├── ontoskill.ttl        # 单个技能模块
-    └── intents.json         # 预计算的意图嵌入（必需）
+    └── intents.json         # 预计算的意图嵌入（可选）
 ```
 
 ### 核心本体

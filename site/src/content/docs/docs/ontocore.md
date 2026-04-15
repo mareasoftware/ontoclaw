@@ -160,7 +160,7 @@ ontoskills/
 │   └── index.enabled.ttl    # Skills enabled for MCP
 └── <skill-path>/
     ├── ontoskill.ttl        # Individual skill module
-    └── intents.json         # Pre-computed intent embeddings (MANDATORY)
+    └── intents.json         # Pre-computed intent embeddings (optional)
 ```
 
 ### The core ontology

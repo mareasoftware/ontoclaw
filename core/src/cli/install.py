@@ -131,18 +131,9 @@ def install_cmd(ctx, package_ref, ontology_root_arg):
         package = install_package_from_sources(target.package.package_id, root=root)
         console.print(f"[green]Installed {package.package_id}: {len(package.skills)} skill(s)[/green]")
 
-    elif isinstance(target, SkillTarget):
-        if not target.standalone:
-            deps = ", ".join(target.sibling_deps)
-            console.print(
-                f"[yellow]Skill '{target.skill_id}' depends on sibling skills: {deps}.[/yellow]\n"
-                f"[yellow]Auto-installing the whole package {target.package.package_id} instead...[/yellow]"
-            )
-            package = install_package_from_sources(target.package.package_id, root=root)
-            console.print(f"[green]Installed {package.package_id}: {len(package.skills)} skill(s)[/green]")
-        else:
-            package = install_single_skill(target.package, target.skill_id, root=root)
-            console.print(f"[green]Installed skill {target.skill_id} from {package.package_id}[/green]")
+    # NOTE: SkillTarget is not reachable here because the 3+ segment guard
+    # above exits early for remote registries. When local manifest_base
+    # becomes available, remove the guard and add skill-level handling.
 
 
 @click.command('enable')
