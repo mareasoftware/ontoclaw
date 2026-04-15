@@ -406,8 +406,13 @@ fn handle_tool_call(
             // - query → semantic intent search (requires embeddings)
             // - alias → alias resolution
             // - otherwise → structured skill search
+            // query and alias are mutually exclusive.
             let has_query = arguments.get("query").and_then(Value::as_str).is_some();
             let has_alias = arguments.get("alias").and_then(Value::as_str).is_some();
+
+            if has_query && has_alias {
+                return Err("Parameters 'query' and 'alias' are mutually exclusive. Provide one or the other.".to_string());
+            }
 
             if has_query {
                 let engine = embedding_engine
