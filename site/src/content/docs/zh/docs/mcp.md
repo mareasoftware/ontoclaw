@@ -61,7 +61,7 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
 
 通过语义查询、别名或结构化过滤器搜索技能。工具根据提供的参数进行分派：
 
-- 提供了 **`query`** → 语义意图搜索（需要嵌入）
+- 提供了 **`query`** → BM25 关键词搜索（可选语义回退，用于大规模技能目录）
 - 提供了 **`alias`** → 别名解析
 - 否则 → 结构化技能搜索（带过滤器）
 
@@ -107,7 +107,7 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
 }
 ```
 
-#### 语义意图搜索
+#### 意图搜索
 
 ```json
 {
@@ -121,29 +121,37 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
 | `query` | string | **必需。** 自然语言查询 |
 | `top_k` | integer | 返回结果数（默认 5）|
 
-**示例响应：**
+**BM25 是默认搜索引擎**，始终可用。它从 Catalog 数据（意图、别名、描述）在启动时构建内存索引，无需额外文件。
+
+**BM25 响应示例：**
 
 ```json
 {
+  "mode": "bm25",
   "query": "创建 pdf 文档",
-  "matches": [
+  "results": [
     {
-      "intent": "create_pdf",
-      "score": 0.92,
-      "skills": ["obra/superpowers/test-driven-development", "obra/superpowers/systematic-debugging"]
-    },
-    {
-      "intent": "export_to_pdf",
-      "score": 0.85,
-      "skills": ["obra/superpowers/dispatching-parallel-agents"]
+      "skill_id": "pdf",
+      "qualified_id": "marea/office/pdf",
+      "score": 0.87,
+      "matched_by": "keyword",
+      "intents": ["create pdf document", "export to pdf"],
+      "aliases": ["pdf-generator"],
+      "trust_tier": "official"
     }
   ]
 }
 ```
 
-结果使用**混合评分**（余弦相似度 x 信任层级质量乘数），使高信任技能在原始相似度略低的情况下也能排在社区贡献之上。
+结果使用**混合评分**（BM25 分数 x 信任层级质量乘数），使高信任技能在原始分数略低的情况下也能排在社区贡献之上。
 
-**注意：** 语义搜索需要嵌入文件。安装包含嵌入支持的技能（`ontoskills install <package>`）或对本地编译的技能运行 `ontoskills export-embeddings`。如果嵌入不可用，工具会返回错误。
+**语义搜索（可选）** — 对于拥有大量技能的场景，关键词匹配可能无法捕获细微的查询意图。OntoMCP 可回退到 ONNX 语义搜索。需使用 `--features embeddings` 编译并提供预计算的嵌入文件：
+
+```bash
+cargo build --features embeddings
+```
+
+当 BM25 置信度低于 0.4 且嵌入可用时，自动回退到语义搜索，响应包含 `"mode": "semantic"` 及意图级别的匹配结果。
 
 #### 别名解析
 
@@ -344,12 +352,17 @@ OntoMCP 暴露 **4 个工具** 用于技能发现和推理。
 ┌─────────────────────────────────────────────────────────────┐
 │                       OntoMCP                                │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   目录       │  │  嵌入        │  │   SPARQL 引擎       │  │
+│  │   目录       │  │  嵌入（可选） │  │   SPARQL 引擎       │  │
 │  │   (Rust)    │  │(ONNX/Intents)│  │   (Oxigraph)        │  │
 │  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘  │
-└─────────┼────────────────┼───────────────────┼─────────────┘
-          │                │                   │
-          ▼                ▼                   ▼
+│         │                │                      │            │
+│  ┌──────┴──────┐         │                      │            │
+│  │  BM25 引擎  │         │                      │            │
+│  │  (内存)     │         │                      │            │
+│  └─────────────┘         │                      │            │
+└─────────┼────────────────┼──────────────────────┼───────────┘
+          │                │                      │
+          ▼                ▼                      ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    ontologies/                               │
 │  ├── index.ttl                                              │
@@ -408,7 +421,9 @@ ontoskills compile
 
 ### "Embeddings not available"
 
-语义搜索模式需要预计算的嵌入。安装包含嵌入支持的技能：
+BM25 关键词搜索始终可用，无需嵌入文件。语义搜索是可选的，仅用于大规模技能目录。
+
+如果需要语义搜索功能，安装包含嵌入支持的技能：
 
 ```bash
 ontoskills install obra/superpowers/test-driven-development
@@ -420,7 +435,7 @@ ontoskills install obra/superpowers/test-driven-development
 ontoskills rebuild-index
 ```
 
-如果 ONNX Runtime 共享库缺失，设置 `ORT_DYLIB_PATH`：
+如果 ONNX Runtime 共享库缺失，设置 `ORT_DYLIB_PATH`（仅语义搜索需要）：
 
 ```bash
 export ORT_DYLIB_PATH=/path/to/libonnxruntime.so
@@ -446,4 +461,4 @@ MCP 客户端必须在调用工具之前发送 `initialize`。合规客户端会
 | 变量 | 描述 | 默认值 |
 |------|------|--------|
 | `ONTOMCP_ONTOLOGY_ROOT` | 本体目录 | `~/.ontoskills/ontologies` |
-| `ORT_DYLIB_PATH` | ONNX Runtime 共享库路径 | 自动检测 |
+| `ORT_DYLIB_PATH` | ONNX Runtime 共享库路径（可选 — 仅用于语义搜索/大规模技能目录） | 自动检测 |

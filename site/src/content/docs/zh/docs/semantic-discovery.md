@@ -1,25 +1,60 @@
 ---
-title: 语义意图发现
-description: 通过自然语言意图和预计算的每技能嵌入查找技能
+title: 意图发现
+description: 通过 BM25 关键词搜索和可选语义嵌入查找技能
 sidebar:
   order: 8
 ---
 
 ## 概述
 
-语义意图发现使 LLM 智能体能够通过自然语言意图查找技能，无需知道确切的意图字符串。这打破了 O(1) 查询承诺 — 智能体现在可以发现如何查询本体。
+意图发现使 LLM 智能体能够通过自然语言意图查找技能，无需知道确切的意图字符串。BM25 关键词搜索是默认引擎，始终可用。语义嵌入是可选的，推荐仅在大型技能目录中使用，因为关键词匹配可能遗漏相关结果。
 
-**解决方案：** 约定 (C) + 模式摘要 (A) + 语义发现
+**解决方案：** 约定 (C) + 模式摘要 (A) + 意图发现
 
 | 组件 | 目的 |
 |------|------|
 | **约定** | 可预测的命名（意图用 `verb_noun`，属性用 `camelCase`）|
 | **模式摘要** | MCP 资源 `ontology://schema` — 2KB 紧凑模式 |
-| **search**（语义模式） | MCP 工具 — 通过预计算的嵌入进行语义匹配 |
+| **search**（BM25 模式） | MCP 工具 — 通过内存 BM25 索引快速关键词匹配 |
+| **search**（语义模式） | MCP 工具 — 可选语义匹配（通过预计算的嵌入） |
 
 ---
 
-## 架构
+## BM25 关键词搜索（默认）
+
+BM25 是默认的搜索引擎，始终可用。它在启动时从 Catalog 已加载的技能数据（意图、别名、描述）构建内存 BM25 索引，无需额外文件。
+
+**工作流程：**
+
+```
+1. Catalog 加载 .ttl 文件 → 提取技能数据
+2. Bm25Engine::from_catalog() → 构建内存 BM25 索引
+3. search(query) → 关键词匹配 + 信任层级质量乘数
+```
+
+**响应示例：**
+
+```json
+{
+  "mode": "bm25",
+  "query": "create a pdf document",
+  "results": [
+    {
+      "skill_id": "pdf",
+      "qualified_id": "marea/office/pdf",
+      "score": 0.87,
+      "matched_by": "keyword",
+      "intents": ["create pdf document", "export to pdf"],
+      "aliases": ["pdf-generator"],
+      "trust_tier": "official"
+    }
+  ]
+}
+```
+
+---
+
+## 语义搜索架构（可选）
 
 嵌入在**编译时按技能预计算**，并在安装时合并。MCP 服务器仅对查询执行 ONNX 推理，将其与预加载的意图向量进行匹配。
 
@@ -74,15 +109,15 @@ sidebar:
 
 ---
 
-## 每技能嵌入
+## 每技能嵌入（可选）
 
-每个技能**必须**声明至少一个意图。编译时，`ontocore compile` 会在每个 `ontoskill.ttl` 旁边生成 `intents.json`：
+每个技能可以声明意图用于语义搜索。编译时，如果安装了 `sentence-transformers`，`ontocore compile` 会在每个 `ontoskill.ttl` 旁边生成 `intents.json`：
 
 ```text
 ontoskills/
 └── <skill>/
     ├── ontoskill.ttl
-    └── intents.json     # 必需 — 没有意图则编译失败
+    └── intents.json     # 可选 — 仅在使用语义搜索时需要
 ```
 
 **intents.json 格式：**
@@ -101,12 +136,7 @@ ontoskills/
 }
 ```
 
-如果技能没有声明任何意图，编译将**失败**并显示：
-
-```text
-Skill 'my-skill' has no declared intents. Every skill must declare at
-least one intent for semantic search.
-```
+如果使用 `pip install ontocore[embeddings]` 编译且技能没有声明任何意图，编译将**警告**并跳过嵌入生成。BM25 搜索仍然可以基于技能描述和别名进行匹配。
 
 ---
 
@@ -118,10 +148,12 @@ least one intent for semantic search.
 ontocore compile -i skills/ -o ontoskills/
 ```
 
-这会为每个技能生成 `ontoskill.ttl` 和 `intents.json`。需要 `sentence-transformers`：
+这会为每个技能生成 `ontoskill.ttl`。BM25 搜索默认可用。
+
+如需同时生成语义嵌入（`intents.json`），安装嵌入依赖：
 
 ```bash
-pip install sentence-transformers
+pip install ontocore[embeddings]
 ```
 
 ### 导出 ONNX 模型（一次性）
@@ -149,7 +181,7 @@ CLI 会：
 ontoskills install obra/superpowers/test-driven-development --no-embeddings
 ```
 
-### MCP 工具：search（语义模式）
+### MCP 工具：search（BM25 默认模式）
 
 ```json
 {
@@ -161,10 +193,31 @@ ontoskills install obra/superpowers/test-driven-development --no-embeddings
 }
 ```
 
-返回带混合分数（余弦相似度 × 信任层级质量乘数）的匹配意图：
+返回匹配的技能及 BM25 分数（含信任层级质量乘数）：
 
 ```json
 {
+  "mode": "bm25",
+  "query": "create a pdf document",
+  "results": [
+    {
+      "skill_id": "pdf",
+      "qualified_id": "marea/office/pdf",
+      "score": 0.87,
+      "matched_by": "keyword",
+      "intents": ["create pdf document", "export to pdf"],
+      "aliases": ["pdf-generator"],
+      "trust_tier": "official"
+    }
+  ]
+}
+```
+
+当 BM25 置信度较低且嵌入可用时，自动回退到语义搜索：
+
+```json
+{
+  "mode": "semantic",
   "query": "create a pdf document",
   "matches": [
     {"intent": "create_pdf", "score": 0.92, "skills": ["pdf"]},
@@ -228,9 +281,10 @@ ontoskills install obra/superpowers/test-driven-development --no-embeddings
 | 指标 | 目标 | 验证 |
 |------|------|------|
 | 模式资源大小 | < 4KB | `test_schema_size` |
-| search 延迟（语义） | < 50ms | 手动基准测试 |
+| search 延迟（BM25） | < 5ms | 手动基准测试 |
+| search 延迟（语义，可选） | < 50ms | 手动基准测试 |
 | ONNX 模型大小 | ~90MB | 检查文件大小 |
-| 内存占用 | < 200MB | 使用 `top` 监控 |
+| 内存占用（无嵌入） | < 50MB | 使用 `top` 监控 |
 
 ---
 
@@ -273,13 +327,14 @@ cli/
 
 ## 依赖
 
-### Python (core/) — 编译必需
+### Python (core/) — 编译
 
 ```toml
-# pyproject.toml — 必需依赖
-sentence-transformers>=2.2.0
+# pyproject.toml — 默认依赖（无需 sentence-transformers）
 
-# pyproject.toml — 可选（仅用于 export-embeddings）
+# pyproject.toml — 可选嵌入依赖（用于语义搜索）
+# pip install ontocore[embeddings]
+sentence-transformers>=2.2.0
 optimum>=1.12.0
 onnx>=1.15.0
 onnxruntime>=1.16.0
@@ -288,15 +343,21 @@ onnxruntime>=1.16.0
 ### Rust (mcp/)
 
 ```toml
-ort = { version = "2.0.0-rc.12", features = ["load-dynamic"] }
-tokenizers = "0.19"
-ndarray = "0.17"
+# 必需 — BM25 关键词搜索
+bm25 = "1"
 anyhow = "1.0"
+
+# 可选 — 语义搜索（--features embeddings）
+ort = { version = "2.0.0-rc.12", features = ["load-dynamic"], optional = true }
+tokenizers = { version = "0.19", optional = true }
+ndarray = { version = "0.17", optional = true }
 ```
 
 ### 运行时要求
 
-ONNX Runtime 共享库必须可用。MCP 服务器使用带 `load-dynamic` 的 `ort`，它会在运行时查找 `libonnxruntime.so`。如需要，设置 `ORT_DYLIB_PATH`：
+BM25 搜索始终可用，无需额外运行时依赖。
+
+ONNX Runtime 共享库仅在语义搜索时需要。MCP 服务器使用带 `load-dynamic` 的 `ort`，它会在运行时查找 `libonnxruntime.so`。如需要，设置 `ORT_DYLIB_PATH`：
 
 ```bash
 export ORT_DYLIB_PATH=/path/to/libonnxruntime.so
