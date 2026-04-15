@@ -161,7 +161,7 @@ Ensure your skill has a "When To Use" or similar section:
 Use this skill when the user wants to extract text from PDF files.
 ```
 
-### "Embedding generation requires sentence_transformers"
+### "Skipping embedding generation"
 
 Embedding generation is optional. The compiler skips it with a warning when `sentence-transformers` is not installed. To enable semantic search vectors:
 

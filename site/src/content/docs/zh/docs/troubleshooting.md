@@ -161,7 +161,7 @@ ontoskills compile my-skill -v
 当用户想从 PDF 文件提取文本时使用此技能。
 ```
 
-### "Embedding generation requires sentence_transformers"
+### "Skipping embedding generation"
 
 嵌入生成是可选的。未安装 `sentence-transformers` 时编译器会跳过并显示警告。要启用语义搜索向量：
 

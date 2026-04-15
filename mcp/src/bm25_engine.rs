@@ -118,8 +118,10 @@ impl Bm25Engine {
 /// Adaptive cutoff for search results.
 ///
 /// Returns the number of results to keep, based on:
-/// - Minimum score threshold
-/// - Gap detection (significant drop in score)
+/// - Minimum score threshold (hard floor)
+/// - Gap detection: cuts at a significant score drop when the lower
+///   result is also below the minimum threshold. This trims borderline
+///   results that would otherwise be included by the floor alone.
 fn adaptive_cutoff(matches: &[Bm25Match], min_threshold: f32, gap_threshold: f32) -> usize {
     if matches.is_empty() {
         return 0;
